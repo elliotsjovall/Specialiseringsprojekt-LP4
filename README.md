@@ -47,17 +47,5 @@ Go to `/webserver`, start your Redis server (if it is not already running, which
     http://localhost:5000
     ```
 
-## On the Drone Pis:
-
-You need to install the Python packages in the requirements if you haven't done so already (see above instructions). 
-
-Go to `/pi`, run `drone.py`
-```
-export FLASK_APP=drone.py
-export FLASK_DEBUG=1
-flask run --host 0.0.0.0
-```
-
-
 Note: Don't use `python3 build.py`, `python3 route_planner.py`, `python3 database.py` or `python3 drone.py` to run the webservers, since this does not porvide all the functionality requied by the application.
 
