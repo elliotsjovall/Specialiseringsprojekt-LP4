@@ -9,12 +9,13 @@ import pickle
 import json
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, supports_credentials=True)
 app.secret_key = 'dljsaklqk24e21cjn!Ew@@dsa5'
+socket = SocketIO(app, cors_allowed_origins="*")
 
 # change this so that you can connect to your redis server
 # ===============================================
-redis_server = redis.Redis("REDIS_SERVER", decode_responses=True, charset="unicode_escape")
+redis_server = redis.Redis(host = "localhost", decode_responses=True, charset="unicode_escape", port =6379)
 # ===============================================
 
 # Translate OSM coordinate (longitude, latitude) to SVG coordinates (x,y).
@@ -40,19 +41,14 @@ def translate(coords_osm):
 def map():
     return render_template('index.html')
 
-@app.route('/get_drones', methods=['GET'])
-def get_drones():
-    #=============================================================================================================================================
-    # Get the information of all the drones from redis server and update the dictionary `drone_dict' to create the response 
-    # drone_dict should have the following format:
-    # e.g if there are two drones in the system with IDs: DRONE1 and DRONE2
-    # drone_dict = {'DRONE_1':{'longitude': drone1_logitude_svg, 'latitude': drone1_logitude_svg, 'status': drone1_status},
-    #               'DRONE_2': {'longitude': drone2_logitude_svg, 'latitude': drone2_logitude_svg, 'status': drone2_status}
-    #              }
-    # use function translate() to covert the coodirnates to svg coordinates
-    #=============================================================================================================================================
-    drone_dict = {}
-    return jsonify(drone_dict)
+@socket.on('get location')
+def get_location():
+    while True:
+        longitude = float(redis_server.get('longitude'))
+        latitude = float(redis_server.get('latitude'))
+        x_svg, y_svg = translate((longitude, latitude))
+        emit('get_location', (x_svg, y_svg))
+        time.sleep(0.01)
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port='5000')
