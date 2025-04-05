@@ -14,8 +14,18 @@ def getMovement(src, dst):
 def moveDrone(src, d_long, d_la):
     x, y = src
     x = x + d_long
-    y = y + d_la        
+    y = y + d_la   	 
     return (x, y)
+
+def send_location(SERVER_URL, id, drone_coords, status):
+    with requests.Session() as session:
+        drone_info = {
+            'id': id,
+            'longitude': drone_coords[0],
+            'latitude': drone_coords[1],
+            'status': status
+        }
+        resp = session.post(SERVER_URL, json=drone_info)
 
 def run(id, current_coords, from_coords, to_coords, SERVER_URL):
     drone_coords = current_coords
@@ -47,11 +57,12 @@ def run(id, current_coords, from_coords, to_coords, SERVER_URL):
                          }
             resp = session.post(SERVER_URL, json=drone_info)
     return drone_coords[0], drone_coords[1]
+
    
 if __name__ == "__main__":
     # Fill in the IP address of server, in order to location of the drone to the SERVER
     #===================================================================
-    SERVER_URL = "http://SERVER_IP:PORT/drone"
+    SERVER_URL = "http://10.0.0.3:5001/drone"
     #===================================================================
 
     parser = argparse.ArgumentParser()
@@ -70,5 +81,8 @@ if __name__ == "__main__":
 
     print(current_coords, from_coords, to_coords)
     drone_long, drone_lat = run(args.id ,current_coords, from_coords, to_coords, SERVER_URL)
+
     # drone_long and drone_lat is the final location when drlivery is completed, find a way save the value, and use it for the initial coordinates of next delivery
     #=============================================================================
+
+
