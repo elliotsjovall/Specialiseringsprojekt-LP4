@@ -63,9 +63,5 @@ class Test:
             
         return None
 
-<<<<<<< HEAD
-
-=======
->>>>>>> abc900f (hej)
 
 
