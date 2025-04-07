@@ -36,8 +36,12 @@ def translate(coords_osm):
     y_svg = y_ratio * (y_osm_lim[1] - y_osm) + y_svg_lim[0]
 
     return x_svg, y_svg
-
+# Route for the home page where the user can enter order number
 @app.route('/', methods=['GET'])
+def home():
+    return render_template('home.html')
+
+@app.route('/map', methods=['GET'])
 def map():
     return render_template('index.html')
 
