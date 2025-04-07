@@ -13,7 +13,7 @@ class Order:
         self.ordernumber = ordernumber
 
     def getOrderNmbr(self):
-        return self.ordernummer
+        return self.ordernumber
 
     def getTotWeight(self):
         tot = 0
@@ -63,4 +63,7 @@ class Test:
             else:
                 return None
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> abc900f (hej)
