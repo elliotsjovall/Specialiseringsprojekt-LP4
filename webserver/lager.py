@@ -60,8 +60,8 @@ class Test:
         for n in self.orderlist:
             if n.getOrderNmbr() == ordernbr:
                 return n
-            else:
-                return None
+            
+        return None
 
 <<<<<<< HEAD
 
