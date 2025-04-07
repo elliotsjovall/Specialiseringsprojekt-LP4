@@ -37,8 +37,7 @@
         function trackOrder() {
             var orderNumber = document.getElementById("order-number").value;
             if (orderNumber) {
-                window.location.href = "/map"
-                encodeURIComponent(orderNumber);
+                window.location.href = "/map?ordernumber=" + encodeURIComponent(orderNumber);
             } else {
                 alert("Vänligen ange ett ordernummer.");
             }
