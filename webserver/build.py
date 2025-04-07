@@ -7,6 +7,10 @@ import time
 import redis
 import pickle
 import json
+from lager import Produkt
+from lager import Order
+from lager import Test
+from flask import redirect, url_for
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
@@ -36,6 +40,36 @@ def translate(coords_osm):
     y_svg = y_ratio * (y_osm_lim[1] - y_osm) + y_svg_lim[0]
 
     return x_svg, y_svg
+
+lista1 = [
+    Produkt("Sårsalvor och antiseptiska medel", 50), 
+    Produkt("Nässprej", 20), 
+    Produkt("C-vitamin", 500), 
+]
+lista2 = [
+    Produkt("Paracetamol", 10),  
+    Produkt("Ibuprofen", 16),    
+    Produkt("Acetylsalicylsyra", 10), 
+]
+
+lista3 = [
+    Produkt("Acetylsalicylsyra", 10), 
+    Produkt("Antihistaminer", 2),  
+    Produkt("Laktosintoleransmedel", 4), 
+    Produkt("Antacida", 48),  
+]
+lista4 = [
+    Produkt("Aloe Vera-gel", 100) 
+]
+
+olist = [
+    Order(lista1, "Magistratsvägen 1", "12345"),
+    Order(lista2, "Agardsgatan 1", "654321"),
+    Order(lista3, "Tunavägen 5", "109876"),
+    Order(lista4, "Södra Esplanaden 10", "567453")
+]
+
+test_obj = Test(olist)
 # Route for the home page where the user can enter order number
 @app.route('/', methods=['GET'])
 def home():
@@ -44,6 +78,21 @@ def home():
 @app.route('/map', methods=['GET'])
 def map():
     return render_template('index.html')
+
+# Route for handling order number verification
+@app.route('/verify_order', methods=['POST'])
+def verify_order():
+    order_number = request.form.get('order-number')
+    
+    # Hämta ordern från Test-objektet
+    order = test_obj.getOrder(order_number)
+    
+    if order:
+        # Om ordern finns, skicka vidare till /map med ordernummer
+        return redirect(url_for('map', ordernumber=order_number))
+    else:
+        # Om ordern inte finns, skicka tillbaka ett felmeddelande
+        return jsonify({'error': 'Ordernummer finns inte.'}), 404
 
 @socket.on('get location')
 def get_location():

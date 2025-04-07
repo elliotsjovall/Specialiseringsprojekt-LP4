@@ -18,39 +18,13 @@ class Order:
     def getTotWeight(self):
         tot = 0
         for p in self.lists:
-            tot += p
+            tot += p.getWeight()
         return tot
     
     def wievInfo(self):
-        return f"Produkt: {self.list}, \n Adress: {self.adress}"
+        return f"Produkt: {self.lists}, \n Adress: {self.adress}"
 
-lista1 = [
-    Produkt("Sårsalvor och antiseptiska medel", 50), 
-    Produkt("Nässprej", 20), 
-    Produkt("C-vitamin", 500), 
-]
-lista2 = [
-    Produkt("Paracetamol", 10),  
-    Produkt("Ibuprofen", 16),    
-    Produkt("Acetylsalicylsyra", 10), 
-]
 
-lista3 = [
-    Produkt("Acetylsalicylsyra", 10), 
-    Produkt("Antihistaminer", 2),  
-    Produkt("Laktosintoleransmedel", 4), 
-    Produkt("Antacida", 48),  
-]
-lista4 = [
-    Produkt("Aloe Vera-gel", 100) 
-]
-
-olist = [
-    Order(lista1, "Magistratsvägen 1", "12345"),
-    Order(lista2, "Agardsgatan 1", "654321"),
-    Order(lista3, "Tunavägen 5", "109876"),
-    Order(lista4, "Södra Esplanaden 10", "567453")
-]
 
 class Test:
     def __init__(self, orderlist):

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MedDrop – Apoteket Online</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Roboto:wght@400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" type="text/css" href="static/homestyle.css">
 </head>
 <body>
     <header>
@@ -23,6 +23,7 @@
                 <label for="order-number">Ange ditt ordernummer:</label>
                 <input type="text" id="order-number" name="order-number" placeholder="Ordernummer...">
                 <button onclick="trackOrder()" class="track-button">Spåra order</button>
+                <p id="error-message" style="color: red; display: none;">Ordernummer finns inte.</p>
             </div>
         </section>
     </main>
@@ -37,11 +38,32 @@
         function trackOrder() {
             var orderNumber = document.getElementById("order-number").value;
             if (orderNumber) {
-                window.location.href = "/map?ordernumber=" + encodeURIComponent(orderNumber);
+                // Skicka en POST-begäran till backend för att verifiera ordernumret
+                fetch('/verify_order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'order-number=' + encodeURIComponent(orderNumber),
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Om ordern är giltig, omdirigera till /map
+                        window.location.href = "/map?ordernumber=" + encodeURIComponent(orderNumber);
+                    } else {
+                        // Om ordern inte är giltig, visa felmeddelande
+                        document.getElementById("error-message").style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById("error-message").style.display = 'block';
+                });
             } else {
                 alert("Vänligen ange ett ordernummer.");
             }
         }
+            
     </script>
 </body>
 </html>
