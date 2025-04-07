@@ -1,51 +1,71 @@
-
 class Produkt:
-    def __init__(self, namn, lagerstatus, vikt):
+    def __init__(self, namn, vikt):
         self.namn = namn
-        self.lagerstatus = lagerstatus
         self.vikt = vikt
-
     
-    def visa_info(self):
-        return f"Produkt: {self.namn}, Lagerstatus: {self.lagerstatus}"
+    def getWeight(self):
+        return self.vikt
     
-class Lager:
-    def __init__(self):
-        self.produkter = {
-            "Paracetamol": Produkt("Paracetamol", 50, 10),  
-            "Ibuprofen": Produkt("Ibuprofen", 40, 16),    
-            "Acetylsalicylsyra": Produkt("Acetylsalicylsyra", 30, 10), 
-            "Antihistaminer": Produkt("Antihistaminer", 20, 2),  
-            "Laktosintoleransmedel": Produkt("Laktosintoleransmedel", 60, 4), 
-            "Antacida": Produkt("Antacida", 48, 680),  
-            "Sårsalvor och antiseptiska medel": Produkt("Sårsalvor och antiseptiska medel", 40, 50), 
-            "Nässprej": Produkt("Nässprej", 20, 20), 
-            "C-vitamin": Produkt("C-vitamin", 100, 500)  
-        }
+class Order:
+    def __init__(self, lists, adress, ordernumber):
+        self.lists = lists
+        self.adress = adress
+        self.ordernumber = ordernumber
+
+    def getOrderNmbr(self):
+        return self.ordernumber
+
+    def getTotWeight(self):
+        tot = 0
+        for p in self.lists:
+            tot += p
+        return tot
     
-    def lägg_till_produkt(self, namn, antal):
-        if namn in self.produkter:
-         self.produkter[namn].lagerstatus += antal
-        else:
-            print(f"Produkten {namn} finns inte i lagret.")
+    def wievInfo(self):
+        return f"Produkt: {self.list}, \n Adress: {self.adress}"
 
+lista1 = [
+    Produkt("Sårsalvor och antiseptiska medel", 50), 
+    Produkt("Nässprej", 20), 
+    Produkt("C-vitamin", 500), 
+]
+lista2 = [
+    Produkt("Paracetamol", 10),  
+    Produkt("Ibuprofen", 16),    
+    Produkt("Acetylsalicylsyra", 10), 
+]
 
-    def köp(self, namn, antal):
-        if namn in self.produkter:
-            if self.produkter[namn] > antal:
-                self.produkter[namn] -= antal
-            elif self.produkter[namn] == antal:
-                del self.produkter[namn]
+lista3 = [
+    Produkt("Acetylsalicylsyra", 10), 
+    Produkt("Antihistaminer", 2),  
+    Produkt("Laktosintoleransmedel", 4), 
+    Produkt("Antacida", 48),  
+]
+lista4 = [
+    Produkt("Aloe Vera-gel", 100) 
+]
+
+olist = [
+    Order(lista1, "Magistratsvägen 1", "12345"),
+    Order(lista2, "Agardsgatan 1", "654321"),
+    Order(lista3, "Tunavägen 5", "109876"),
+    Order(lista4, "Södra Esplanaden 10", "567453")
+]
+
+class Test:
+    def __init__(self, orderlist):
+        self.orderlist = orderlist
+    
+    def getOrder(self, ordernbr):
+        for n in self.orderlist:
+            if n.getOrderNmbr() == ordernbr:
+                return n
             else:
-                print(f"Det finns inte tillräckligt av {namn} i lager")
-        else:
-         print(f"Produkten {namn} finns inte i lager")
+                return None
 
-    def visa_lager(self):
-        return f"Lagerstatus: {self.produkter}"
+<<<<<<< HEAD
 
-    def hämta_alla_produkter(self):
-        return list(self.produkter.values())
-    
+=======
+>>>>>>> abc900f (hej)
 
 
