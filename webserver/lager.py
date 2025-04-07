@@ -56,8 +56,6 @@ class Test:
     def __init__(self, orderlist):
         self.orderlist = orderlist
     
-
-    
     def getOrder(self, ordernbr):
         for n in self.orderlist:
             if n.getOrderNmbr() == ordernbr:
