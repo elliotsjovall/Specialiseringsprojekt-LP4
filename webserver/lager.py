@@ -64,7 +64,4 @@ class Test:
                 return None
 
 
-def main():
-    a = Test(olist)
-
-main()
+ordrar = Test(olist)
