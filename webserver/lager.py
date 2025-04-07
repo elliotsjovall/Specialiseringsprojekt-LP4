@@ -63,7 +63,4 @@ class Test:
             else:
                 return None
 
-<<<<<<< HEAD
-
-=======
->>>>>>> abc900f (hej)
+ordrar = Test(olist)
