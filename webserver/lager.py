@@ -64,4 +64,3 @@ class Test:
                 return None
 
 
-ordrar = Test(olist)
