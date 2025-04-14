@@ -31,7 +31,7 @@ def translate(coords_osm):
     x_svg_lim = (212.155699, 968.644301)
     y_svg_lim = (103.68, 768.96)
 
-    x_osm = coords_osm[0]
+    x_osm = coords_osm[0] 
     y_osm = coords_osm[1]
 
     x_ratio = (x_svg_lim[1] - x_svg_lim[0]) / (x_osm_lim[1] - x_osm_lim[0])
@@ -94,14 +94,46 @@ def verify_order():
         # Om ordern inte finns, skicka tillbaka ett felmeddelande
         return jsonify({'error': 'Ordernummer finns inte.'}), 404
 
-@socket.on('get location')
+@app.route('/get_drones', methods=['GET'])
+def get_drones():
+    drone_dict = {}
+    drone_keys = redis_server.keys("drone:*")  # Get all drones
+
+    for key in drone_keys:
+        drone_id = key.split(":")[1]  # e.g., drone:DRONE1 → DRONE1
+        drone_data = redis_server.hgetall(key)
+
+        if drone_data:
+            try:
+                longitude = float(drone_data.get('longitude', 0))
+                latitude = float(drone_data.get('latitude', 0))
+                status = drone_data.get('status', 'unknown')
+
+                x_svg, y_svg = translate((longitude, latitude))
+
+                drone_dict[drone_id] = {
+                    'longitude': x_svg,
+                    'latitude': y_svg,
+                    'status': status
+                }
+            except Exception as e:
+                print(f"Error with {key}: {e}")
+
+    return jsonify(drone_dict)
+
+# Optional socket event for real-time location (if needed)
+@socket.on('get_location')
 def get_location():
-    while True:
-        longitude = float(redis_server.get('longitude'))
-        latitude = float(redis_server.get('latitude'))
-        x_svg, y_svg = translate((longitude, latitude))
-        emit('get_location', (x_svg, y_svg))
-        time.sleep(0.01)
+    try:
+        while True:
+            longitude = float(redis_server.get('longitude'))
+            latitude = float(redis_server.get('latitude'))
+            x_svg, y_svg = translate((longitude, latitude))
+            emit('get_location', {'x': x_svg, 'y': y_svg})
+            time.sleep(1)
+    except Exception as e:
+        print(f"Socket error: {e}")
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port='5000')
+    app.run(debug=True, host='0.0.0.0', port='5004')
+
