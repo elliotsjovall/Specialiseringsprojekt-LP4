@@ -15,7 +15,7 @@ Go to `/pi`, run `drone.py`
 ```
 export FLASK_APP=drone.py
 export FLASK_DEBUG=1
-flask run --host 0.0.0.0
+flask run --port 5004 --host 0.0.0.0
 ```
 
 ## On the Server Pi:
