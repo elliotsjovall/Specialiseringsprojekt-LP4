@@ -8,22 +8,11 @@
 </head>
 
 <body>
-  <!-- Här visar vi ordernumret istället för "Current Position" -->
   <p id="order-info"></p>
-
-  <!-- Du kan kommentera bort detta om du inte vill låta användaren ange from/to manuellt 
-  <form action="javascript:Submit()">
-    ...
-  </form>
-  <script type="text/javascript">
-    function Submit() { ... }
-  </script>
-  -->
 
   <object id="map" data="static/images/lund-map.svg" type="image/svg+xml"></object>
 
   <script type="text/javascript">
-    // Byt "Current Position:" mot "Ordernummer: ###" om param finns i URL
     function displayOrderNumberFromQuery() {
       const params = new URLSearchParams(window.location.search);
       const orderNr = params.get("ordernumber") || "-";
@@ -31,7 +20,6 @@
     }
     displayOrderNumberFromQuery();
 
-    // Ritar en cirkel för varje drönare i SVG
     function LoadDrone(droneID, x, y, status) {
       var doc = document.getElementById("map");
       $(doc).ready(function() {
@@ -56,8 +44,7 @@
         }
       });
     }
-
-    // Pollar /get_drones var 1 sekund
+    
     var set_delay = 1000;
     function pollDrones() {
       $.ajax({

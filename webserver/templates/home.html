@@ -22,7 +22,6 @@
                 <h3>För att skicka din order, skriv in ditt ordernummer:</h3>
                 <label for="order-number">Ange ditt ordernummer:</label>
                 <input type="text" id="order-number" name="order-number" placeholder="Ordernummer...">
-                <!-- Om du vill kan du byta texten på knappen -->
                 <button onclick="trackOrder()" class="track-button">Skicka order</button>
                 <p id="error-message" style="color: red; display: none;">Ordernummer finns inte.</p>
             </div>
@@ -39,7 +38,7 @@
         function trackOrder() {
             var orderNumber = document.getElementById("order-number").value;
             if (orderNumber) {
-                // Skicka en POST-begäran till backend för att verifiera ordernumret
+                // Skicka en POST-förfråga för att verifiera ordernummer
                 fetch('/verify_order', {
                     method: 'POST',
                     headers: {

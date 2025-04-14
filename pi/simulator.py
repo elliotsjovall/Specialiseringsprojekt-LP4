@@ -1,4 +1,3 @@
-# === simulator.py ===
 import math
 import requests
 import argparse
