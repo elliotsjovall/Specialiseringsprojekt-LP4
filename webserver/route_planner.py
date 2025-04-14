@@ -28,22 +28,17 @@ def route_planner():
     elif to_location is None:
         return 'Destination address not found, please input a correct address'
     else:
-        # De koordinater drönaren ska använda
         coords = {
-            # pickup = lager / "FromAddress"
             'pickup': (from_location.longitude, from_location.latitude),
-            # destination = beställarens adress
             'destination': (to_location.longitude, to_location.latitude)
         }
 
-        # Leta upp en idle-drönare
         drones = redis_server.smembers("drones")
         droneAvailable = None
         for drone in drones:
             droneData = redis_server.hgetall(drone)
             if droneData['status'] == 'idle':
                 droneAvailable = drone
-                # Drönarens nuvarande position
                 coords['current'] = (
                     float(droneData['longitude']),
                     float(droneData['latitude'])
@@ -54,8 +49,6 @@ def route_planner():
             return 'No available drone, try later'
         else:
             DRONE_IP = redis_server.hget(droneAvailable, 'ip')
-            # Om alla drönare körs på port 5004, hårdkoda den. 
-            # Annars bör du spara porten i Redis per drönare.
             DRONE_URL = 'http://' + DRONE_IP + ':5004'
 
             try:

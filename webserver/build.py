@@ -11,7 +11,7 @@ from lager import Produkt
 from lager import Order
 from lager import Test
 from flask import redirect, url_for
-import requests  # <-- lägg till för att kunna anropa route_planner
+import requests
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)

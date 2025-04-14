@@ -15,14 +15,12 @@ args = parser.parse_args()
 
 myID = args.id
 
-# Drönarens initiala startposition. 
-# (Kör du flera drönare, ge dem olika startkoordinater om du vill se dem separat.)
+# drönarens startposition
 current_longitude = 13.21008
 current_latitude = 55.71106
 
 SERVER = "http://localhost:5001/drone"
 
-# Registrera drönaren i Redis (idle)
 drone_info = {
     'id': myID,
     'longitude': current_longitude,
@@ -42,7 +40,6 @@ def main():
     pickup = coords['pickup']
     destination = coords['destination']
 
-    # Kör simulatorn i en egen process
     subprocess.Popen([
         "python3", "simulator.py",
         "--id", myID,

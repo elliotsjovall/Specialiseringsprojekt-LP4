@@ -55,7 +55,6 @@ def run(drone_id, current_coords, pickup_coords, destination_coords, server_url)
             'status': 'busy'
         })
 
-    # Snap to pickup coords
     drone_coords = pickup_coords
     requests.post(server_url, json={
         'id': drone_id,
@@ -64,7 +63,6 @@ def run(drone_id, current_coords, pickup_coords, destination_coords, server_url)
         'status': 'busy'
     })
 
-    # Set idle
     requests.post(server_url, json={
         'id': drone_id,
         'longitude': drone_coords[0],
