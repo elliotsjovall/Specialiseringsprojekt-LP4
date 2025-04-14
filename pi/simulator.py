@@ -2,8 +2,9 @@ import math
 import requests
 import argparse
 
+
 def getMovement(src, dst):
-    speed = 0.00001
+    speed = 0.000001
     dst_x, dst_y = dst
     x, y = src
     direction = math.sqrt((dst_x - x)**2 + (dst_y - y)**2)
@@ -62,7 +63,7 @@ def run(id, current_coords, from_coords, to_coords, SERVER_URL):
 if __name__ == "__main__":
     # Fill in the IP address of server, in order to location of the drone to the SERVER
     #===================================================================
-    SERVER_URL = "http://10.0.0.3:5001/drone"
+    SERVER_URL = "http://localhost:5001/drone"
     #===================================================================
 
     parser = argparse.ArgumentParser()
