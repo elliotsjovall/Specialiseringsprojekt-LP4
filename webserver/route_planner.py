@@ -17,8 +17,8 @@ region = ", Lund, Skåne, Sweden"
 @app.route('/planner', methods=['POST'])
 def route_planner():
     Addresses = json.loads(request.data.decode())
-    FromAddress = Addresses['faddr']  # lageradress
-    ToAddress = Addresses['taddr']    # orderadress
+    FromAddress = Addresses['faddr'] 
+    ToAddress = Addresses['taddr']  
 
     from_location = geolocator.geocode(FromAddress + region, timeout=None)
     to_location = geolocator.geocode(ToAddress + region, timeout=None)

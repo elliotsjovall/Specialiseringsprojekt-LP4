@@ -18,7 +18,6 @@ CORS(app, supports_credentials=True)
 app.secret_key = 'dljsaklqk24e21cjn!Ew@@dsa5'
 socket = SocketIO(app, cors_allowed_origins="*")
 
-# Anpassa Redis-host/port här
 redis_server = redis.Redis(host="localhost", decode_responses=True, charset="unicode_escape", port=6379)
 
 def translate(coords_osm):
@@ -38,7 +37,6 @@ def translate(coords_osm):
 
     return x_svg, y_svg
 
-# Exempel på orderlistor och ordernummer
 lista1 = [
     Produkt("Sårsalvor och antiseptiska medel", 50), 
     Produkt("Nässprej", 20), 
@@ -70,12 +68,10 @@ test_obj = Test(olist)
 
 @app.route('/', methods=['GET'])
 def home():
-    # Hem-sida med formulär för att ange ordernummer
     return render_template('home.html')
 
 @app.route('/map', methods=['GET'])
 def map():
-    # Karta-sida
     return render_template('index.html')
 
 @app.route('/verify_order', methods=['POST'])
@@ -84,12 +80,10 @@ def verify_order():
     order = test_obj.getOrder(order_number)
 
     if order:
-        # Hårdkodad "lageradress"
-        from_addr = "Sölvegatan 14"  # t.ex. en lageradress
+        from_addr = "Sölvegatan 14" 
         to_addr = order.adress
 
-        # Skicka till route_planner
-        planner_url = "http://localhost:5002/planner"  # anpassa om nödvändigt
+        planner_url = "http://localhost:5002/planner"
         payload = {
             "faddr": from_addr,
             "taddr": to_addr
@@ -97,7 +91,6 @@ def verify_order():
         resp = requests.post(planner_url, json=payload)
         print("Planner response:", resp.text)
 
-        # Redirect till /map (som visar kartan)
         return redirect(url_for('map', ordernumber=order_number))
     else:
         return jsonify({'error': 'Ordernummer finns inte.'}), 404

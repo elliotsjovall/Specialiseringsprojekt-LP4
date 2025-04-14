@@ -15,7 +15,6 @@ args = parser.parse_args()
 
 myID = args.id
 
-# drönarens startposition
 current_longitude = 13.21008
 current_latitude = 55.71106
 

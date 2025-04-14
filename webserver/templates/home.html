@@ -38,7 +38,6 @@
         function trackOrder() {
             var orderNumber = document.getElementById("order-number").value;
             if (orderNumber) {
-                // Skicka en POST-förfråga för att verifiera ordernummer
                 fetch('/verify_order', {
                     method: 'POST',
                     headers: {
@@ -48,10 +47,8 @@
                 })
                 .then(response => {
                     if (response.ok) {
-                        // Om ordern är giltig, omdirigera till /map
                         window.location.href = "/map?ordernumber=" + encodeURIComponent(orderNumber);
                     } else {
-                        // Om ordern inte är giltig, visa felmeddelande
                         document.getElementById("error-message").style.display = 'block';
                     }
                 })
