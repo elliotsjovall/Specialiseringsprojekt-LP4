@@ -2,53 +2,58 @@ from flask import Flask, request
 from flask_cors import CORS
 import subprocess
 import requests
-
+import argparse
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 app.secret_key = 'dljsaklqk24e21cjn!Ew@@dsa5'
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--id", default="DRONE1", help="Unikt ID för drönaren, t.ex. DRONE1")
+parser.add_argument("--port", default=5004, type=int, help="Port som denna drönar-server körs på")
+args = parser.parse_args()
 
-	#Give a unique ID for the drone
-	#===================================================================
-myID = "DRONE1"
-	#===================================================================
+myID = args.id
 
-	# Get initial longitude and latitude the drone
-	#===================================================================
+# Drönarens initiala startposition. 
+# (Kör du flera drönare, ge dem olika startkoordinater om du vill se dem separat.)
 current_longitude = 13.21008
 current_latitude = 55.71106
-	#===================================================================
 
-drone_info = {'id': myID,
-                	'longitude': current_longitude,
-                	'latitude': current_latitude,
-                	'status': 'idle'
-            	}
+SERVER = "http://localhost:5001/drone"
 
-	# Fill in the IP address of server, and send the initial location of the drone to the SERVER
-	#===================================================================
-SERVER="http://localhost:5001/drone"
+# Registrera drönaren i Redis (idle)
+drone_info = {
+    'id': myID,
+    'longitude': current_longitude,
+    'latitude': current_latitude,
+    'status': 'idle'
+}
 with requests.Session() as session:
-	resp = session.post(SERVER, json=drone_info)
-	#===================================================================
+    resp = session.post(SERVER, json=drone_info)
+    print("Registering drone:", resp.text)
 
 @app.route('/', methods=['POST'])
 def main():
-	coords = request.json
-    	# Get current longitude and latitude of the drone
-    	#===================================================================
-	current_longitude = coords['current'][0]
-	current_latitude = coords['current'][1]
-    	#===================================================================
-	from_coord = coords['from']
-	to_coord = coords['to']
-	subprocess.Popen(["python3", "simulator.py", '--clong', str(current_longitude), '--clat', str(current_latitude),
-                                                	'--flong', str(from_coord[0]), '--flat', str(from_coord[1]),
-                                                	'--tlong', str(to_coord[0]), '--tlat', str(to_coord[1]),
-                                                	'--id', myID
-                	])
-	return 'New route received'
+    coords = request.json
+    # coords = { "current": (x,y), "pickup": (x,y), "destination": (x,y) }
+
+    current = coords['current']
+    pickup = coords['pickup']
+    destination = coords['destination']
+
+    # Kör simulatorn i en egen process
+    subprocess.Popen([
+        "python3", "simulator.py",
+        "--id", myID,
+        "--clong", str(current[0]),
+        "--clat", str(current[1]),
+        "--picklong", str(pickup[0]),
+        "--picklat", str(pickup[1]),
+        "--destlong", str(destination[0]),
+        "--destlat", str(destination[1])
+    ])
+    return "New route received", 200
 
 if __name__ == '__main__':
-	app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0', port=args.port)
