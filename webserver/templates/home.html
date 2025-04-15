@@ -19,10 +19,10 @@
         <section class="track-order">
             <div class="container">
                 <h2>Skicka din order</h2>
-                <h3> För att skicka din order skriv in dit ordernummer</h3>
+                <h3>För att skicka din order, skriv in ditt ordernummer:</h3>
                 <label for="order-number">Ange ditt ordernummer:</label>
                 <input type="text" id="order-number" name="order-number" placeholder="Ordernummer...">
-                <button onclick="trackOrder()" class="track-button">Spåra order</button>
+                <button onclick="trackOrder()" class="track-button">Skicka order</button>
                 <p id="error-message" style="color: red; display: none;">Ordernummer finns inte.</p>
             </div>
         </section>
@@ -39,20 +39,17 @@
             var orderNumber = document.getElementById("order-number").value;
             
             if (orderNumber) {
-                // Skicka en POST-begäran till backend för att verifiera ordernumret
                 fetch('/verify_order', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Content-Type': 'application/x-www-form-urlencoded'
                     },
                     body: 'order-number=' + encodeURIComponent(orderNumber),
                 })
                 .then(response => {
                     if (response.ok) {
-                        // Om ordern är giltig, omdirigera till /map
                         window.location.href = "/map?ordernumber=" + encodeURIComponent(orderNumber);
                     } else {
-                        // Om ordern inte är giltig, visa felmeddelande
                         document.getElementById("error-message").style.display = 'block';
                     }
                 })
@@ -64,7 +61,6 @@
                 alert("Vänligen ange ett ordernummer.");
             }
         }
-            
     </script>
 </body>
 </html>

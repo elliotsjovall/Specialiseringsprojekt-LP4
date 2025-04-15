@@ -2,88 +2,88 @@ import math
 import requests
 import argparse
 
-
 def getMovement(src, dst):
     speed = 0.000001
     dst_x, dst_y = dst
     x, y = src
     direction = math.sqrt((dst_x - x)**2 + (dst_y - y)**2)
-    longitude_move = speed * ((dst_x - x) / direction )
-    latitude_move = speed * ((dst_y - y) / direction )
-    return longitude_move, latitude_move
+    if direction == 0:
+        return (0, 0)
+    return speed * (dst_x - x) / direction, speed * (dst_y - y) / direction
 
 def moveDrone(src, d_long, d_la):
     x, y = src
-    x = x + d_long
-    y = y + d_la   	 
-    return (x, y)
+    return (x + d_long, y + d_la)
 
-def send_location(SERVER_URL, id, drone_coords, status):
-    with requests.Session() as session:
-        drone_info = {
-            'id': id,
+def distanceSquared(a, b):
+    return ((b[0] - a[0])**2 + (b[1] - a[1])**2)
+
+def run(drone_id, current_coords, pickup_coords, destination_coords, server_url):
+    drone_coords = current_coords
+
+    # current -> pickup
+    d_long, d_la = getMovement(drone_coords, pickup_coords)
+    while distanceSquared(drone_coords, pickup_coords)*10**6 > 0.0002:
+        drone_coords = moveDrone(drone_coords, d_long, d_la)
+        requests.post(server_url, json={
+            'id': drone_id,
             'longitude': drone_coords[0],
             'latitude': drone_coords[1],
-            'status': status
-        }
-        resp = session.post(SERVER_URL, json=drone_info)
+            'status': 'busy'
+        })
 
-def run(id, current_coords, from_coords, to_coords, SERVER_URL):
-    drone_coords = current_coords
-    d_long, d_la =  getMovement(drone_coords, from_coords)
-    while ((from_coords[0] - drone_coords[0])**2 + (from_coords[1] - drone_coords[1])**2)*10**6 > 0.0002:
+    # pickup -> destination
+    d_long, d_la = getMovement(drone_coords, destination_coords)
+    while distanceSquared(drone_coords, destination_coords)*10**6 > 0.0002:
         drone_coords = moveDrone(drone_coords, d_long, d_la)
-        with requests.Session() as session:
-            drone_info = {'id': id,
-                          'longitude': drone_coords[0],
-                          'latitude': drone_coords[1],
-                          'status': 'busy'
-                        }
-            resp = session.post(SERVER_URL, json=drone_info)
-    d_long, d_la =  getMovement(drone_coords, to_coords)
-    while ((to_coords[0] - drone_coords[0])**2 + (to_coords[1] - drone_coords[1])**2)*10**6 > 0.0002:
-        drone_coords = moveDrone(drone_coords, d_long, d_la)
-        with requests.Session() as session:
-            drone_info = {'id': id,
-                          'longitude': drone_coords[0],
-                          'latitude': drone_coords[1],
-                          'status': 'busy'
-                        }
-            resp = session.post(SERVER_URL, json=drone_info)
-    with requests.Session() as session:
-            drone_info = {'id': id,
-                          'longitude': drone_coords[0],
-                          'latitude': drone_coords[1],
-                          'status': 'idle'
-                         }
-            resp = session.post(SERVER_URL, json=drone_info)
-    return drone_coords[0], drone_coords[1]
+        requests.post(server_url, json={
+            'id': drone_id,
+            'longitude': drone_coords[0],
+            'latitude': drone_coords[1],
+            'status': 'busy'
+        })
 
-   
+    # destination -> back to pickup
+    d_long, d_la = getMovement(drone_coords, pickup_coords)
+    while distanceSquared(drone_coords, pickup_coords)*10**6 > 0.0002:
+        drone_coords = moveDrone(drone_coords, d_long, d_la)
+        requests.post(server_url, json={
+            'id': drone_id,
+            'longitude': drone_coords[0],
+            'latitude': drone_coords[1],
+            'status': 'busy'
+        })
+
+    drone_coords = pickup_coords
+    requests.post(server_url, json={
+        'id': drone_id,
+        'longitude': drone_coords[0],
+        'latitude': drone_coords[1],
+        'status': 'busy'
+    })
+
+    requests.post(server_url, json={
+        'id': drone_id,
+        'longitude': drone_coords[0],
+        'latitude': drone_coords[1],
+        'status': 'idle'
+    })
+
 if __name__ == "__main__":
-    # Fill in the IP address of server, in order to location of the drone to the SERVER
-    #===================================================================
     SERVER_URL = "http://localhost:5001/drone"
-    #===================================================================
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--clong", help='current longitude of drone location' ,type=float)
-    parser.add_argument("--clat", help='current latitude of drone location',type=float)
-    parser.add_argument("--flong", help='longitude of input [from address]',type=float)
-    parser.add_argument("--flat", help='latitude of input [from address]' ,type=float)
-    parser.add_argument("--tlong", help ='longitude of input [to address]' ,type=float)
-    parser.add_argument("--tlat", help ='latitude of input [to address]' ,type=float)
-    parser.add_argument("--id", help ='drones ID' ,type=str)
+    parser.add_argument("--id", type=str)
+    parser.add_argument("--clong", type=float)
+    parser.add_argument("--clat", type=float)
+    parser.add_argument("--picklong", type=float)
+    parser.add_argument("--picklat", type=float)
+    parser.add_argument("--destlong", type=float)
+    parser.add_argument("--destlat", type=float)
     args = parser.parse_args()
 
     current_coords = (args.clong, args.clat)
-    from_coords = (args.flong, args.flat)
-    to_coords = (args.tlong, args.tlat)
+    pickup_coords = (args.picklong, args.picklat)
+    destination_coords = (args.destlong, args.destlat)
 
-    print(current_coords, from_coords, to_coords)
-    drone_long, drone_lat = run(args.id ,current_coords, from_coords, to_coords, SERVER_URL)
-
-    # drone_long and drone_lat is the final location when drlivery is completed, find a way save the value, and use it for the initial coordinates of next delivery
-    #=============================================================================
-
-
+    run(args.id, current_coords, pickup_coords, destination_coords, SERVER_URL)
