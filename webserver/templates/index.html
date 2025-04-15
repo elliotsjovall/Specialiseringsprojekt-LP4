@@ -57,7 +57,48 @@
   )
 }
   </script> 
+  <style>
+  .input-box {
+    background-color: #e0f0ff; /* ljusblå bakgrund */
+    border: 2px solid #007acc; /* blå kant */
+    padding: 15px;
+    margin: 10px 0;
+    width: fit-content;
+    border-radius: 10px;
+  }
+
+  input[type="text"] {
+    margin-bottom: 10px;
+    padding: 5px;
+    width: 250px;
+  }
+
+  input[type="submit"] {
+    background-color: #007acc;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+
+  input[type="submit"]:hover {
+    background-color: #005a99;
+  }
+</style>
+
 </head>
+
+<div class="input-box">
+  <form action="javascript:Submit()">
+    <label for="fname">From address:</label><br>
+    <input type="text" id="faddr" name="faddr"><br>
+    <label for="lname">To address:</label><br>
+    <input type="text" id="taddr" name="taddr"><br><br>
+    <input type="submit" value="Search addresses">
+  </form>
+</div>
+
 
 <body>
   <p>Current Position: </p>
