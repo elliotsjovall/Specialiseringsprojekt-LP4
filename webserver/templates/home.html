@@ -37,29 +37,35 @@
     <script>
         function trackOrder() {
             var orderNumber = document.getElementById("order-number").value;
-            if (orderNumber) {
-                fetch('/verify_order', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: 'order-number=' + encodeURIComponent(orderNumber),
-                })
-                .then(response => {
-                    if (response.ok) {
-                        window.location.href = "/map?ordernumber=" + encodeURIComponent(orderNumber);
-                    } else {
-                        document.getElementById("error-message").style.display = 'block';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    document.getElementById("error-message").style.display = 'block';
-                });
+    if (orderNumber) {
+        fetch('/verify_order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'order-number=' + encodeURIComponent(orderNumber),
+            redirect: 'follow' // detta är default, men vi nämner det för tydlighet
+        })
+        .then(response => {
+            if (response.redirected) {
+                // ✅ Om servern returnerar en redirect (HTTP 302)
+                window.location.href = response.url;
+            } else if (response.ok) {
+                // 🔁 Backup om du själv vill bygga URL:en (inte nödvändigt i ditt fall)
+                window.location.href = "/map?ordernumber=" + encodeURIComponent(orderNumber);
             } else {
-                alert("Vänligen ange ett ordernummer.");
+                document.getElementById("error-message").style.display = 'block';
             }
-        }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById("error-message").style.display = 'block';
+        });
+    } else {
+        alert("Vänligen ange ett ordernummer.");
+    }
+}
+            
     </script>
 </body>
 </html>

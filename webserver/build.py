@@ -12,6 +12,8 @@ from lager import Order
 from lager import Test
 from flask import redirect, url_for
 import requests
+import base64
+from urllib.parse import quote
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
@@ -81,19 +83,33 @@ def verify_order():
 
     if order:
         from_addr = "Sölvegatan 14" 
-        to_addr = order.adress
+        to_addr = order.getAdress()
+        total_weight = order.getTotWeight()
 
+        products = [p.namn for p in order.lists]
+        product_json = base64.urlsafe_b64encode(json.dumps(products).encode()).decode()
+       
         planner_url = "http://localhost:5002/planner"
         payload = {
             "faddr": from_addr,
-            "taddr": to_addr
+            "taddr": to_addr,
+            
         }
-        resp = requests.post(planner_url, json=payload)
-        print("Planner response:", resp.text)
+        try:
+            resp = requests.post(planner_url, json=payload)
+            print("Planner response:", resp.text)
+        except Exception as e:
+            print("Planner error:", e)
+        
 
-        return redirect(url_for('map', ordernumber=order_number))
+        return redirect(url_for('map', 
+                            ordernumber=order_number,
+                            address=to_addr,
+                            weight=total_weight,
+                            products=product_json))
     else:
-        return jsonify({'error': 'Ordernummer finns inte.'}), 404
+        return jsonify({'error': 'Ordernummer finns inte.'}), 40
+
 
 @app.route('/get_drones', methods=['GET'])
 def get_drones():
@@ -120,8 +136,8 @@ def get_drones():
 
     return jsonify(drone_dict)
 
-@socket.on('get_location')
-def get_location():
+#@socket.on('get_location')
+#def get_location():
     try:
         while True:
             longitude = float(redis_server.get('longitude'))

@@ -24,11 +24,13 @@ drone_info = {
     'id': myID,
     'longitude': current_longitude,
     'latitude': current_latitude,
-    'status': 'idle'
+    'status': 'idle',
+    'port': args.port
 }
 with requests.Session() as session:
     resp = session.post(SERVER, json=drone_info)
     print("Registering drone:", resp.text)
+    print(f"port: {args.port}" )
 
 @app.route('/', methods=['POST'])
 def main():
@@ -38,7 +40,16 @@ def main():
     current = coords['current']
     pickup = coords['pickup']
     destination = coords['destination']
+    
+    # Debug print statements
+    print("Drone received new route:")
+    print("Current:", current)
+    print("Pickup:", pickup)
+    print("Destination:", destination)
+    print("Starting simulator process...")
+    print(f'port:{args.port}')
 
+    # Start subprocess to run simulator
     subprocess.Popen([
         "python3", "simulator.py",
         "--id", myID,
@@ -49,6 +60,7 @@ def main():
         "--destlong", str(destination[0]),
         "--destlat", str(destination[1])
     ])
+    
     return "New route received", 200
 
 if __name__ == '__main__':

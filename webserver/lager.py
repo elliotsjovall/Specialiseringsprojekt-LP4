@@ -20,6 +20,8 @@ class Order:
         for p in self.lists:
             tot += p.getWeight()
         return tot
+    def getAdress(self):
+        return self.adress
 
     def wievInfo(self):
         return f"Produkt: {self.lists}, \n Adress: {self.adress}"
@@ -30,6 +32,6 @@ class Test:
 
     def getOrder(self, ordernbr):
         for n in self.orderlist:
-            if n.getOrderNmbr() == ordernbr:
+            if isinstance(n, Order) and n.getOrderNmbr() == ordernbr:
                 return n
         return None
