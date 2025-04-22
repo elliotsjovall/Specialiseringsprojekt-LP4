@@ -20,6 +20,7 @@ class Order:
         for p in self.lists:
             tot += p.getWeight()
         return tot
+    #La till get adress för att få korrekt adress
     def getAdress(self):
         return self.adress
 
@@ -30,6 +31,7 @@ class Test:
     def __init__(self, orderlist):
         self.orderlist = orderlist
 
+    #La till isInstanceOf för att säkerställa att n skickas som en order och inte any
     def getOrder(self, ordernbr):
         for n in self.orderlist:
             if isinstance(n, Order) and n.getOrderNmbr() == ordernbr:

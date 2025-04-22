@@ -12,6 +12,8 @@ from lager import Order
 from lager import Test
 from flask import redirect, url_for
 import requests
+
+#Lagt  till dessa importer för att kunna ladda in listan med produkterna
 import base64
 from urllib.parse import quote
 
@@ -83,9 +85,12 @@ def verify_order():
 
     if order:
         from_addr = "Sölvegatan 14" 
+        #använder nu funktionen .getAdress() istället för enbart .adress
         to_addr = order.getAdress()
+        #Lagt till så korrekt vikt hämtas
         total_weight = order.getTotWeight()
 
+        #hämtar produkterna från list
         products = [p.namn for p in order.lists]
         product_json = base64.urlsafe_b64encode(json.dumps(products).encode()).decode()
        
@@ -95,13 +100,15 @@ def verify_order():
             "taddr": to_addr,
             
         }
+
+        #Detta skickar en korrekt url som är nåbar i index.html.
         try:
             resp = requests.post(planner_url, json=payload)
             print("Planner response:", resp.text)
         except Exception as e:
             print("Planner error:", e)
         
-
+        #Skickar url med alla komponenter som behövs för info-panel
         return redirect(url_for('map', 
                             ordernumber=order_number,
                             address=to_addr,
@@ -135,6 +142,8 @@ def get_drones():
                 print(f"Error with {key}: {e}")
 
     return jsonify(drone_dict)
+
+#Markerat ut socket eftersom jag inte hittar var den behövs och vi vill undvika för många post så sidan inte krashar
 
 #@socket.on('get_location')
 #def get_location():
