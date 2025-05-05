@@ -19,9 +19,12 @@
     <p><strong>Beställda produkter:</strong></p>
     <ul id="ordered-products"></ul>
     <p><strong>Total vikt:</strong> <span id="total-weight">-></span></p>
+    <p><strong>Orderstatus:</strong> <span id="order-status">-</span></p>
 
      <!-- Ny knapp för att gå tillbaka till huvudsidan -->
      <button id="back-to-home" onclick="goBackToHome()">Till Huvudsidan</button>
+     <!-- Knapp för att gå till QR-skanner -->
+     <button id="qr-scan-button" onclick="goToQRScanner()">Skanna QR-kod</button>
   </div>
 
   <p id="order-info"></p>
@@ -38,11 +41,17 @@
       const address = params.get("address")?.replace(/\+/g, ' ') || "-";
       const weight = params.get("weight") || "-";
       const productListRaw = params.get("products");
+      const orderStatus = params.get("status") || "Okänd";
+      
 
       document.getElementById("order-number").innerText = orderNr;
       document.getElementById("delivery-address").innerText = address;
       document.getElementById("total-weight").innerText = weight + " mg";
      
+      // Uppdatera statusen med färg
+      const orderStatusElement = document.getElementById("order-status");
+      updateOrderStatus(orderStatus);
+
       if (productListRaw) {
         try {
           // Dekoda base64 URL-safe → vanlig base64
@@ -62,13 +71,50 @@
           console.error("Kunde inte tolka produktlistan:", e);
         }
       }
+
     }
+    
+     // Uppdaterar statusen på sidan baserat på färg och text
+    function updateOrderStatus(status) {
+      const orderStatusElement = document.getElementById("order-status");
+
+      if (status === "levereras") {
+        orderStatusElement.style.color = "blue";
+        orderStatusElement.innerText = "levereras";
+      } else  {
+        orderStatusElement.style.color = "blue";
+        orderStatusElement.innerText = "i kö";
+      } 
+    }
+
+    // Funktion för att pollera orderstatus från backend
+    function pollOrderStatus() {
+      const params = new URLSearchParams(window.location.search);
+      const currentOrder = params.get("ordernumber");
+
+      if (!currentOrder) return;
+
+      fetch(`/order_status/${currentOrder}`)
+        .then(response => response.json())
+        .then(data => {
+          updateOrderStatus(data.status);
+        })
+        .catch(console.error)
+        .finally(() => {
+          // Uppdatera varje 2 sekund
+          setTimeout(pollOrderStatus, 2000);
+        });
+    }
+      
 
 
     // Kör vid sidladdning
   loadOrderDataFromQuery();
-    
 
+  // Starta polling av orderstatus
+  pollOrderStatus();
+    
+    // Funktion för att visa drönare på kartan
     function LoadDrone(droneID, x, y, status) {
       var doc = document.getElementById("map");
       $(doc).ready(function() {
@@ -94,7 +140,7 @@
       });
     }
     
-    var set_delay = 1000;
+    var set_delay = 10;
     function pollDrones() {
       $.ajax({
         url: 'http://localhost:5000/get_drones'
@@ -115,6 +161,10 @@
     // Funktion som navigerar användaren tillbaka till huvudsidan
     function goBackToHome() {
       window.location.href = "/";  // Byt till din huvudsida (kan vara en annan URL)
+    }
+
+    function goToQRScanner() {
+      window.location.href = "/qr" + window.location.search;
     }
     
     pollDrones();

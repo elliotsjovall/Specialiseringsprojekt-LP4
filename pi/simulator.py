@@ -69,6 +69,7 @@ def run(drone_id, current_coords, pickup_coords, destination_coords, server_url)
                           'status': 'busy'
                         }
             resp = session.post(SERVER_URL, json=drone_info)
+        time.sleep(0.05)  # 👈 Lägg till denna rad
     with requests.Session() as session:
             drone_info = {'id': drone_id,
                           'longitude': drone_coords[0],

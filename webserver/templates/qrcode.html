@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang  = "ar">
+<head>
+  <title>QR Code Scanner</title>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
+</head>
+<style>
+  body {
+    display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-color: #f0f0f0;
+      font-family: 'Arial', sans-serif;
+
+  }
+
+  video {
+      border: 4px solid #333;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  }
+
+  #output {
+      margin-top: 20px;
+      font-size: 24px;
+      font-weight: bold;
+  }
+
+  .success {
+    color: green;
+  }
+
+  .failure {
+    color: red;
+  }
+  </style>
+</head>
+
+<body>
+  <video id="video" width="640" height="480" autoplay></video>
+  <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+  <p id="output">Scanning for QR code...</p>
+  <button onclick="window.location.href='/map'">Tillbaka</button>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const output = document.getElementById('output');
+    const context = canvas.getContext('2d');
+
+    // Access the camera
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(function(stream) {
+        video.srcObject = stream;
+        video.play();
+        scanQRCode();
+      })
+      .catch(function(error) {
+        console.error('Error accessing the camera:', error);
+      });
+
+    function scanQRCode() {
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+      if (code && code.data != '') {
+        output.textContent = `QR Code Detected`;
+        alert('QR Code Detected')
+        fetch('http://127.0.0.1:5006/verify_qr', {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ decoded_text: code.data}),
+        })
+        .then(response => response.json())
+        .then(data => {
+          console.log('Verification response:', data);
+            output.textContent += ` | Verification: ${data.success}`;
+
+          if (data.success == "true") {
+            output.textContent = 'Code is valid';
+            output.className = 'success';
+          } else {
+            output.textContent = 'Code is invalid';
+            output.className = 'failure';
+          }
+        })
+
+        .catch(err => {
+          output.textContent = 'Error connecting to the server';
+          output.className = 'failure';
+        });
+        // console.log(`QR Code Data: ${code.data}`);
+
+      } else {
+        requestAnimationFrame(scanQRCode);
+      }
+    }
+  </script>
+</body>
+</html>

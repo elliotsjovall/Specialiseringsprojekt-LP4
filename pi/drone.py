@@ -1,8 +1,10 @@
-from flask import Flask, request
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import subprocess
 import requests
 import argparse
+import redis
+
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
@@ -15,8 +17,8 @@ args = parser.parse_args()
 
 myID = args.id
 
-current_longitude = 13.21008
-current_latitude = 55.71106
+current_longitude = 13.2295092
+current_latitude = 55.7173913
 
 SERVER = "http://localhost:5001/drone"
 
@@ -62,6 +64,17 @@ def main():
     ])
     
     return "New route received", 200
+@app.route('/drone-arrived', methods=['POST'])
+def drone_arrived():
+    data = request.get_json()
+    drone_id = data['drone_id']
+    order_number = data['order_number']
+    
+    # Uppdatera statusen för ordern till 'delivered' när drönaren når destinationen
+    redis_server = redis.Redis(host="localhost", decode_responses=True)
+    redis_server.hset(order_number, 'status', 'delivered')
+    print(f"Order {order_number} has been delivered by drone {drone_id}")
+    return jsonify({'status': 'success', 'message': 'Order delivered'})
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=args.port)

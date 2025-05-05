@@ -33,6 +33,7 @@ body {
     padding-bottom: 6px;
   }
   
+  
   /* Paragrafer i rutan */
   .order-info-container p {
     margin: 6px 0;
@@ -57,6 +58,11 @@ body {
   #total-weight {
     color: #2c3e50;
   }
+
+  #order-status {
+    font-weight: bold;
+    color: #e67e22; /* Orange färg för tydlighet */
+}
   
   /* Knapp: Till huvudsidan */
   #back-to-home {
@@ -74,6 +80,24 @@ body {
   }
   
   #back-to-home:hover {
+    background-color: #1a242f;
+  }
+
+  #qr-scan-button {
+    width: 100%;
+    padding: 10px;
+    background-color: #2c3e50;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.3s ease;
+  }
+  
+  #qr-scan-button:hover {
     background-color: #1a242f;
   }
 

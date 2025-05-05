@@ -20,7 +20,7 @@ from urllib.parse import quote
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 app.secret_key = 'dljsaklqk24e21cjn!Ew@@dsa5'
-socket = SocketIO(app, cors_allowed_origins="*")
+#socket = SocketIO(app, cors_allowed_origins="*")
 
 redis_server = redis.Redis(host="localhost", decode_responses=True, charset="unicode_escape", port=6379)
 
@@ -62,13 +62,37 @@ lista4 = [
 ]
 
 olist = [
-    Order(lista1, "Magistratsvägen 1", "12345"),
-    Order(lista2, "Agardsgatan 1", "654321"),
-    Order(lista3, "Tunavägen 5", "109876"),
-    Order(lista4, "Södra Esplanaden 10", "567453")
+    Order(lista1, "Magistratsvägen 1", "1"),
+    Order(lista2, "Nationsgatan 1", "2"),
+    Order(lista3, "Tunavägen 5", "3"),
+    Order(lista4, "Södra Esplanaden 10", "4"),
+    Order(lista1, "Södra Esplanaden 1", "5")
 ]
 
 test_obj = Test(olist)
+
+def check_available_drones():
+    drone_keys = redis_server.keys("drone:*")
+    
+    for key in drone_keys:
+        # Ignorera drone:queue
+        if key == "drone:queue":
+            continue
+
+        # Kontrollera typ
+        key_type = redis_server.type(key)
+        if key_type != 'hash':
+            print(f"❌ Skipping {key} – fel typ ({key_type})")
+            continue
+
+        drone_data = redis_server.hgetall(key)
+        if drone_data:
+            status = drone_data.get('status', 'unknown')
+            print(f"📡 Drönare {key} status: {status}")
+            if status == "idle":
+                return True
+    return False
+
 
 @app.route('/', methods=['GET'])
 def home():
@@ -77,6 +101,10 @@ def home():
 @app.route('/map', methods=['GET'])
 def map():
     return render_template('index.html')
+
+@app.route('/qr')
+def qr_scanner():
+    return render_template('qrcode.html')  # HTML-filen som innehåller QR-kodskannaren
 
 @app.route('/verify_order', methods=['POST'])
 def verify_order():
@@ -93,11 +121,22 @@ def verify_order():
         #hämtar produkterna från list
         products = [p.namn for p in order.lists]
         product_json = base64.urlsafe_b64encode(json.dumps(products).encode()).decode()
+
+       # Kolla om det finns lediga drönare
+        available_drones = check_available_drones()
+
+        if available_drones:
+            order_status = "levereras"  # Sätt orderstatusen till "levereras" om en ledig drönare finns
+        else:
+            order_status = "i kö"  # Sätt orderstatusen till "i kö" om inga lediga drönare finns
+
+
        
         planner_url = "http://localhost:5002/planner"
         payload = {
             "faddr": from_addr,
             "taddr": to_addr,
+            "order_number": order_number
             
         }
 
@@ -113,7 +152,8 @@ def verify_order():
                             ordernumber=order_number,
                             address=to_addr,
                             weight=total_weight,
-                            products=product_json))
+                            products=product_json, 
+                            status=order_status))  # Lägg till status i URL:en
     else:
         return jsonify({'error': 'Ordernummer finns inte.'}), 40
 
@@ -122,15 +162,18 @@ def verify_order():
 def get_drones():
     drone_dict = {}
     drone_keys = redis_server.keys("drone:*")
+    print(f"Found drone keys: {drone_keys}")  # Lägg till loggning för att se vilka nycklar som finns
 
     for key in drone_keys:
         drone_id = key.split(":")[1]
         drone_data = redis_server.hgetall(key)
+        print(f"Data for {drone_id}: {drone_data}")  # Lägg till loggning för varje drönare
+
         if drone_data:
             try:
                 longitude = float(drone_data.get('longitude', 0))
                 latitude = float(drone_data.get('latitude', 0))
-                status = drone_data.get('status', 'unknown')
+                status = str(drone_data.get('status'))
 
                 x_svg, y_svg = translate((longitude, latitude))
                 drone_dict[drone_id] = {
@@ -142,6 +185,13 @@ def get_drones():
                 print(f"Error with {key}: {e}")
 
     return jsonify(drone_dict)
+
+
+@app.route('/order_status/<order_number>', methods=['GET'])
+def get_order_status(order_number):
+    """Returnerar aktuell status för en order."""
+    status = redis_server.hget(order_number, 'status') or 'okänd'
+    return jsonify({'status': status})
 
 #Markerat ut socket eftersom jag inte hittar var den behövs och vi vill undvika för många post så sidan inte krashar
 
