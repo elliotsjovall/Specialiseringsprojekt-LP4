@@ -23,6 +23,9 @@ class Order:
 
     def wievInfo(self):
         return f"Produkt: {self.lists}, \n Adress: {self.adress}"
+    
+    def getAdress(self):
+        return self.adress
 
 class Test:
     def __init__(self, orderlist):

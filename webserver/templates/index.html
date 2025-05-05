@@ -9,6 +9,7 @@
 
 <body>
   <p id="order-info"></p>
+  <p id="destination-info"></p>   
 
   <object id="map" data="static/images/lund-map.svg" type="image/svg+xml"></object>
 
@@ -16,7 +17,9 @@
     function displayOrderNumberFromQuery() {
       const params = new URLSearchParams(window.location.search);
       const orderNr = params.get("ordernumber") || "-";
+      const destination = params.get("adress") || "Unknown"; //ändrat
       document.getElementById("order-info").innerText = "Ordernummer: " + orderNr;
+      document.getElementById("destination-info").innerText = "Destination: " + destination; //ändrat
     }
     displayOrderNumberFromQuery();
 

@@ -12,6 +12,7 @@ from lager import Order
 from lager import Test
 from flask import redirect, url_for
 import requests
+from collections import deque
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
@@ -57,12 +58,22 @@ lista4 = [
     Produkt("Aloe Vera-gel", 100),
 ]
 
-olist = [
-    Order(lista1, "Magistratsvägen 1", "12345"),
-    Order(lista2, "Agardsgatan 1", "654321"),
-    Order(lista3, "Tunavägen 5", "109876"),
-    Order(lista4, "Södra Esplanaden 10", "567453")
-]
+#olist = [
+#    Order(lista1, "Magistratsvägen 1", "12345"),
+#    Order(lista2, "Agardsgatan 1", "654321"),
+#    Order(lista3, "Tunavägen 5", "109876"),
+#    Order(lista4, "Södra Esplanaden 10", "567453")
+#]
+olist = deque()
+olist.append(Order(lista1, "Magistratsvägen 1", "12345"))
+olist.append(Order(lista2, "Agardsgatan 1", "654321"))
+olist.append(Order(lista3, "Tunavägen 5", "109876"))
+olist.append(Order(lista4, "Södra Esplanaden 10", "567453"))
+
+pending1 = ()
+pending2 = ()
+pending3 = ()
+pending4 = ()
 
 test_obj = Test(olist)
 
@@ -80,8 +91,10 @@ def verify_order():
     order = test_obj.getOrder(order_number)
 
     if order:
-        from_addr = "Sölvegatan 14" 
-        to_addr = order.adress
+        from_addr =  "Sölvegatan 14" 
+        
+        to_addr =  olist.popleft().getAdress() #order.adress
+        pending1 = to_addr
 
         planner_url = "http://localhost:5002/planner"
         payload = {
