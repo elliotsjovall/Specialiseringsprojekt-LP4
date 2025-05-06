@@ -1,13 +1,13 @@
 import math
 import requests
 import argparse
-import time  # 👈 viktigt
+import time 
 def getMovement(src, dst):
     speed = 0.00003
     dst_x, dst_y = dst
     x, y = src
     if src == dst:
-        return 0.0, 0.0  # Inget att göra, ingen rörelse
+        return 0.0, 0.0
     
     direction = math.sqrt((dst_x - x)**2 + (dst_y - y)**2)
     longitude_move = speed * ((dst_x - x) / direction )
@@ -26,8 +26,6 @@ def distanceSquared(a, b):
 def run(drone_id, current_coords, pickup_coords, destination_coords, server_url):
     drone_coords = current_coords
 
-    # current -> pickup
-      # Debugging: Skriv ut nuvarande status
     print(f"Moving to pickup: Current {drone_coords} -> Target {pickup_coords}")
     d_long, d_la = getMovement(drone_coords, pickup_coords)
     while distanceSquared(drone_coords, pickup_coords)*10**6 > 0.0002:
@@ -40,10 +38,8 @@ def run(drone_id, current_coords, pickup_coords, destination_coords, server_url)
                         }
             resp = session.post(SERVER_URL, json=drone_info)
         
-     # Debugging: Skriv ut nuvarande status
     print(f"Moving to destination: Current {drone_coords} -> Target {destination_coords}")
      
-    # pickup -> destination
     d_long, d_la = getMovement(drone_coords, destination_coords)
     while distanceSquared(drone_coords, destination_coords)*10**6 > 0.0002:
         drone_coords = moveDrone(drone_coords, d_long, d_la)
@@ -57,7 +53,6 @@ def run(drone_id, current_coords, pickup_coords, destination_coords, server_url)
         })
         time.sleep(0.05)
     print(f"Returning to pickup: Current {drone_coords} -> Target {pickup_coords}")
-    # destination -> back to pickup
     d_long, d_la = getMovement(drone_coords, pickup_coords)
     while distanceSquared(drone_coords, pickup_coords)*10**6 > 0.0002:
         drone_coords = moveDrone(drone_coords, d_long, d_la)
@@ -69,7 +64,7 @@ def run(drone_id, current_coords, pickup_coords, destination_coords, server_url)
                           'status': 'busy'
                         }
             resp = session.post(SERVER_URL, json=drone_info)
-        time.sleep(0.05)  # 👈 Lägg till denna rad
+        time.sleep(0.05)
     with requests.Session() as session:
             drone_info = {'id': drone_id,
                           'longitude': drone_coords[0],

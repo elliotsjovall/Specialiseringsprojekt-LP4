@@ -1,28 +1,34 @@
 from os import fdopen
-from flask import Flask, render_template, request
-from flask.json import jsonify
-from flask_socketio import SocketIO, emit
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_cors import CORS
-import time
 import redis
-import pickle
 import json
-from lager import Produkt
-from lager import Order
-from lager import Test
-from flask import redirect, url_for
 import requests
-
-#Lagt  till dessa importer för att kunna ladda in listan med produkterna
+from lager import Produkt, Order, Test
 import base64
-from urllib.parse import quote
+
+from dotenv import load_dotenv
+import os
+from weather import get_current_weather  # our new weather module
+
+# ─── load & verify API key ───────────────────────────────
+load_dotenv()
+WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
+if not WEATHER_API_KEY:
+    raise RuntimeError(
+        "WEATHER_API_KEY not set; please add WEATHER_API_KEY=your_key to webserver/.env"
+    )
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 app.secret_key = 'dljsaklqk24e21cjn!Ew@@dsa5'
-#socket = SocketIO(app, cors_allowed_origins="*")
 
-redis_server = redis.Redis(host="localhost", decode_responses=True, charset="unicode_escape", port=6379)
+redis_server = redis.Redis(
+    host="localhost",
+    port=6379,
+    decode_responses=True,
+    charset="unicode_escape"
+)
 
 def translate(coords_osm):
     x_osm_lim = (13.143390664, 13.257501336)
@@ -31,19 +37,18 @@ def translate(coords_osm):
     x_svg_lim = (212.155699, 968.644301)
     y_svg_lim = (103.68, 768.96)
 
-    x_osm = coords_osm[0]
-    y_osm = coords_osm[1]
-
+    x_osm, y_osm = coords_osm
     x_ratio = (x_svg_lim[1] - x_svg_lim[0]) / (x_osm_lim[1] - x_osm_lim[0])
     y_ratio = (y_svg_lim[1] - y_svg_lim[0]) / (y_osm_lim[1] - y_osm_lim[0])
+
     x_svg = x_ratio * (x_osm - x_osm_lim[0]) + x_svg_lim[0]
     y_svg = y_ratio * (y_osm_lim[1] - y_osm) + y_svg_lim[0]
 
     return x_svg, y_svg
 
 lista1 = [
-    Produkt("Sårsalvor och antiseptiska medel", 50), 
-    Produkt("Nässprej", 20), 
+    Produkt("Sårsalvor och antiseptiska medel", 50),
+    Produkt("Nässprej", 20),
     Produkt("C-vitamin", 500),
 ]
 lista2 = [
@@ -57,9 +62,7 @@ lista3 = [
     Produkt("Laktosintoleransmedel", 4),
     Produkt("Antacida", 48),
 ]
-lista4 = [
-    Produkt("Aloe Vera-gel", 100),
-]
+lista4 = [ Produkt("Aloe Vera-gel", 100) ]
 
 olist = [
     Order(lista1, "Magistratsvägen 1", "1"),
@@ -68,144 +71,106 @@ olist = [
     Order(lista4, "Södra Esplanaden 10", "4"),
     Order(lista1, "Södra Esplanaden 1", "5")
 ]
-
 test_obj = Test(olist)
 
 def check_available_drones():
-    drone_keys = redis_server.keys("drone:*")
-    
-    for key in drone_keys:
-        # Ignorera drone:queue
+    for key in redis_server.keys("drone:*"):
         if key == "drone:queue":
             continue
-
-        # Kontrollera typ
-        key_type = redis_server.type(key)
-        if key_type != 'hash':
-            print(f"❌ Skipping {key} – fel typ ({key_type})")
+        if redis_server.type(key) != 'hash':
             continue
-
-        drone_data = redis_server.hgetall(key)
-        if drone_data:
-            status = drone_data.get('status', 'unknown')
-            print(f"📡 Drönare {key} status: {status}")
-            if status == "idle":
-                return True
+        if redis_server.hget(key, 'status') == 'idle':
+            return True
     return False
-
 
 @app.route('/', methods=['GET'])
 def home():
-    return render_template('home.html')
+    try:
+        weather = get_current_weather("Lund", WEATHER_API_KEY)
+    except Exception as e:
+        app.logger.error(f"Weather fetch failed: {e}")
+        weather = {
+            "description": "Unavailable",
+            "temp_c": "--",
+            "wind_kph": "--",
+            "is_raining": False
+        }
+
+    return render_template('home.html', weather=weather)
 
 @app.route('/map', methods=['GET'])
 def map():
     return render_template('index.html')
 
-@app.route('/qr')
+@app.route('/qr', methods=['GET'])
 def qr_scanner():
-    return render_template('qrcode.html')  # HTML-filen som innehåller QR-kodskannaren
+    return render_template('qrcode.html')
 
 @app.route('/verify_order', methods=['POST'])
 def verify_order():
     order_number = request.form.get('order-number')
     order = test_obj.getOrder(order_number)
+    if not order:
+        return jsonify({'error': 'Ordernummer finns inte.'}), 400
 
-    if order:
-        from_addr = "Sölvegatan 14" 
-        #använder nu funktionen .getAdress() istället för enbart .adress
-        to_addr = order.getAdress()
-        #Lagt till så korrekt vikt hämtas
-        total_weight = order.getTotWeight()
+    from_addr = "Sölvegatan 14"
+    to_addr   = order.getAdress()
+    total_weight = order.getTotWeight()
+    products = [p.namn for p in order.lists]
+    product_json = base64.urlsafe_b64encode(json.dumps(products).encode()).decode()
 
-        #hämtar produkterna från list
-        products = [p.namn for p in order.lists]
-        product_json = base64.urlsafe_b64encode(json.dumps(products).encode()).decode()
+    available = check_available_drones()
+    order_status = "levereras" if available else "i kö"
 
-       # Kolla om det finns lediga drönare
-        available_drones = check_available_drones()
+    try:
+        resp = requests.post(
+            "http://localhost:5002/planner",
+            json={
+                "faddr": from_addr,
+                "taddr": to_addr,
+                "order_number": order_number
+            },
+            timeout=3
+        )
+        app.logger.info(f"Planner response: {resp.text}")
+    except Exception as e:
+        app.logger.error(f"Planner error: {e}")
 
-        if available_drones:
-            order_status = "levereras"  # Sätt orderstatusen till "levereras" om en ledig drönare finns
-        else:
-            order_status = "i kö"  # Sätt orderstatusen till "i kö" om inga lediga drönare finns
-
-
-       
-        planner_url = "http://localhost:5002/planner"
-        payload = {
-            "faddr": from_addr,
-            "taddr": to_addr,
-            "order_number": order_number
-            
-        }
-
-        #Detta skickar en korrekt url som är nåbar i index.html.
-        try:
-            resp = requests.post(planner_url, json=payload)
-            print("Planner response:", resp.text)
-        except Exception as e:
-            print("Planner error:", e)
-        
-        #Skickar url med alla komponenter som behövs för info-panel
-        return redirect(url_for('map', 
-                            ordernumber=order_number,
-                            address=to_addr,
-                            weight=total_weight,
-                            products=product_json, 
-                            status=order_status))  # Lägg till status i URL:en
-    else:
-        return jsonify({'error': 'Ordernummer finns inte.'}), 40
-
+    return redirect(url_for(
+        'map',
+        ordernumber=order_number,
+        address=to_addr,
+        weight=total_weight,
+        products=product_json,
+        status=order_status
+    ))
 
 @app.route('/get_drones', methods=['GET'])
 def get_drones():
     drone_dict = {}
-    drone_keys = redis_server.keys("drone:*")
-    print(f"Found drone keys: {drone_keys}")  # Lägg till loggning för att se vilka nycklar som finns
-
-    for key in drone_keys:
-        drone_id = key.split(":")[1]
-        drone_data = redis_server.hgetall(key)
-        print(f"Data for {drone_id}: {drone_data}")  # Lägg till loggning för varje drönare
-
-        if drone_data:
-            try:
-                longitude = float(drone_data.get('longitude', 0))
-                latitude = float(drone_data.get('latitude', 0))
-                status = str(drone_data.get('status'))
-
-                x_svg, y_svg = translate((longitude, latitude))
-                drone_dict[drone_id] = {
-                    'longitude': x_svg,
-                    'latitude': y_svg,
-                    'status': status
-                }
-            except Exception as e:
-                print(f"Error with {key}: {e}")
-
+    for key in redis_server.keys("drone:*"):
+        drone_id = key.split(":", 1)[1]
+        data = redis_server.hgetall(key)
+        if not data:
+            continue
+        try:
+            lon = float(data.get('longitude', 0))
+            lat = float(data.get('latitude', 0))
+            status = data.get('status', 'unknown')
+            x_svg, y_svg = translate((lon, lat))
+            drone_dict[drone_id] = {
+                'longitude': x_svg,
+                'latitude': y_svg,
+                'status': status
+            }
+        except Exception:
+            continue
     return jsonify(drone_dict)
-
 
 @app.route('/order_status/<order_number>', methods=['GET'])
 def get_order_status(order_number):
-    """Returnerar aktuell status för en order."""
     status = redis_server.hget(order_number, 'status') or 'okänd'
     return jsonify({'status': status})
 
-#Markerat ut socket eftersom jag inte hittar var den behövs och vi vill undvika för många post så sidan inte krashar
-
-#@socket.on('get_location')
-#def get_location():
-    try:
-        while True:
-            longitude = float(redis_server.get('longitude'))
-            latitude = float(redis_server.get('latitude'))
-            x_svg, y_svg = translate((longitude, latitude))
-            emit('get_location', {'x': x_svg, 'y': y_svg})
-            time.sleep(1)
-    except Exception as e:
-        print(f"Socket error: {e}")
-
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port='5000')
+    app.run(debug=True, host='0.0.0.0', port=5000)

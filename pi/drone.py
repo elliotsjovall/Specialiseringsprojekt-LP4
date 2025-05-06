@@ -43,7 +43,6 @@ def main():
     pickup = coords['pickup']
     destination = coords['destination']
     
-    # Debug print statements
     print("Drone received new route:")
     print("Current:", current)
     print("Pickup:", pickup)
@@ -51,7 +50,6 @@ def main():
     print("Starting simulator process...")
     print(f'port:{args.port}')
 
-    # Start subprocess to run simulator
     subprocess.Popen([
         "python3", "simulator.py",
         "--id", myID,

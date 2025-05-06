@@ -76,44 +76,41 @@ def route_planner():
         }
         print(f"FromAdress: {coords}")
        
-         # Hämta alla drönare från Redis
         drones = redis_server.smembers("drones")
         droneAvailable = None
 
         for drone in drones:
             droneData = redis_server.hgetall(drone)
 
-            # Kolla om drönaren är ledig
+            # checka om drönare är ledig
             if droneData.get('status') == 'idle':
                 droneAvailable = drone
                 coords['current'] = (
                     float(droneData['longitude']),
                     float(droneData['latitude'])
                 )
-                # Uppdatera drönarens status till 'busy' för att indikera att den är upptagen
+                #sätta busy om upptaget
                 redis_server.hset(drone, 'status', 'busy')
                 break
 
         if droneAvailable is None:
-             # Lägg till order i kön om ingen drönare är tillgänglig
             order_data = {
-                'status': 'i kö',  # Sätt status till 'queued'
-                'drone': '',  # Ingen drone tilldelad än
+                'status': 'i kö',
+                'drone': '', 
                 'order_number': order_number
             }
 
-            redis_server.hset(order_number, mapping=order_data)  # Lägg till ordern i Redis
+            redis_server.hset(order_number, mapping=order_data) 
             redis_server.rpush('drone:queue', json.dumps(coords))
             return jsonify({'status': 'i kö', 'message': 'No available drone, your order has been queued'})
         else:
-            # Det finns en tillgänglig drönare
             redis_server.hset(order_number, mapping={
             'status': 'levereras',
             'drone': droneAvailable
             })
 
             DRONE_IP = redis_server.hget(droneAvailable, 'ip')
-            DRONE_PORT = redis_server.hget(droneAvailable, 'port')  # Fetch the 'port' key
+            DRONE_PORT = redis_server.hget(droneAvailable, 'port')
             DRONE_URL = f'http://{DRONE_IP}:{DRONE_PORT}'
 
 
@@ -128,20 +125,17 @@ def route_planner():
             
 @app.route('/queue-length', methods=['GET'])
 def queue_length():
-    # Kolla om det finns ordrar i kön
     length = redis_server.llen('drone:queue')
     return jsonify({'queue_length': length})
 
 def drone_queue_worker():
     while True:
-        # Kolla om det finns ordrar i kön
         order_data = redis_server.lindex('drone:queue', 0)
         if order_data:
             drones = redis_server.smembers("drones")
             for drone in drones:
                 droneData = redis_server.hgetall(drone)
                 if droneData.get('status') == 'idle':
-                    # Om drönaren är ledig, hämta ordern från kön
                     coords = json.loads(order_data)
                     coords['current'] = (
                         float(droneData['longitude']),
@@ -158,20 +152,17 @@ def drone_queue_worker():
                             resp = session.post(drone_url, json=coords)
                             print(f"Sent queued job to {drone}: {resp.text}")
                         
-                        # Ta bort order från kön och uppdatera statusen i Redis
-                        redis_server.lpop('drone:queue')  # Ta bort order från kön
-                        redis_server.hset(coords['order_number'], 'status', 'levereras')  # Uppdatera status i Redis
+                        redis_server.lpop('drone:queue') 
+                        redis_server.hset(coords['order_number'], 'status', 'levereras')
 
-                        # Uppdatera status på hemsidan
                         update_order_on_website(coords['order_number'], 'levereras')
 
                     except Exception as e:
                         print(f"Failed to send queued job to {drone}: {e}")
-                        redis_server.hset(coords['order_number'], 'status', 'error')  # Om det misslyckas, sätt status till 'error'
+                        redis_server.hset(coords['order_number'], 'status', 'error')
                     break
         time.sleep(5)
 
-# Starta tråd för att hantera kön automatiskt
 threading.Thread(target=drone_queue_worker, daemon=True).start()
 
 
