@@ -165,6 +165,11 @@ def get_drones():
     print(f"Found drone keys: {drone_keys}")  # Lägg till loggning för att se vilka nycklar som finns
 
     for key in drone_keys:
+        # Kontrollera typ
+        key_type = redis_server.type(key)
+        if key_type != 'hash':
+            print(f"❌ Skipping {key} – fel typ ({key_type})")
+            continue
         drone_id = key.split(":")[1]
         drone_data = redis_server.hgetall(key)
         print(f"Data for {drone_id}: {drone_data}")  # Lägg till loggning för varje drönare
@@ -192,6 +197,9 @@ def get_order_status(order_number):
     """Returnerar aktuell status för en order."""
     status = redis_server.hget(order_number, 'status') or 'okänd'
     return jsonify({'status': status})
+
+
+
 
 #Markerat ut socket eftersom jag inte hittar var den behövs och vi vill undvika för många post så sidan inte krashar
 

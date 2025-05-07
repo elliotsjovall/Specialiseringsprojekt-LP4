@@ -20,6 +20,7 @@
     <ul id="ordered-products"></ul>
     <p><strong>Total vikt:</strong> <span id="total-weight">-></span></p>
     <p><strong>Orderstatus:</strong> <span id="order-status">-</span></p>
+    
 
      <!-- Ny knapp för att gå tillbaka till huvudsidan -->
      <button id="back-to-home" onclick="goBackToHome()">Till Huvudsidan</button>
@@ -42,6 +43,8 @@
       const weight = params.get("weight") || "-";
       const productListRaw = params.get("products");
       const orderStatus = params.get("status") || "Okänd";
+      const cityGuess = address.split(' ')[1] || "Lund"; 
+      
       
 
       document.getElementById("order-number").innerText = orderNr;
@@ -73,6 +76,8 @@
       }
 
     }
+
+   
     
      // Uppdaterar statusen på sidan baserat på färg och text
     function updateOrderStatus(status) {

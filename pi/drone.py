@@ -16,9 +16,8 @@ parser.add_argument("--port", default=5004, type=int, help="Port som denna drön
 args = parser.parse_args()
 
 myID = args.id
-
-current_longitude = 13.2295092
-current_latitude = 55.7173913
+current_longitude = 13.2045836
+current_latitude = 55.7102906
 
 SERVER = "http://localhost:5001/drone"
 
@@ -39,7 +38,7 @@ def main():
     coords = request.json
     # coords = { "current": (x,y), "pickup": (x,y), "destination": (x,y) }
 
-    current = coords['current']
+    current = coords['pickup']
     pickup = coords['pickup']
     destination = coords['destination']
     

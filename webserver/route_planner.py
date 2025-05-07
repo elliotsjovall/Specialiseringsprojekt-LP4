@@ -163,7 +163,7 @@ def drone_queue_worker():
                         redis_server.hset(coords['order_number'], 'status', 'levereras')  # Uppdatera status i Redis
 
                         # Uppdatera status på hemsidan
-                        update_order_on_website(coords['order_number'], 'levereras')
+                        #update_order_on_website(coords['order_number'], 'levereras')
 
                     except Exception as e:
                         print(f"Failed to send queued job to {drone}: {e}")
