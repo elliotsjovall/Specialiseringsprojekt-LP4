@@ -28,17 +28,17 @@ def run(drone_id, current_coords, pickup_coords, destination_coords, server_url)
 
     # current -> pickup
       # Debugging: Skriv ut nuvarande status
-    print(f"Moving to pickup: Current {drone_coords} -> Target {pickup_coords}")
-    d_long, d_la = getMovement(drone_coords, pickup_coords)
-    while distanceSquared(drone_coords, pickup_coords)*10**6 > 0.0002:
-        drone_coords = moveDrone(drone_coords, d_long, d_la)
-        with requests.Session() as session:
-            drone_info = {'id': drone_id,
-                          'longitude': drone_coords[0],
-                          'latitude': drone_coords[1],
-                          'status': 'busy'
-                        }
-            resp = session.post(SERVER_URL, json=drone_info)
+   # print(f"Moving to pickup: Current {drone_coords} -> Target {pickup_coords}")
+    #d_long, d_la = getMovement(drone_coords, pickup_coords)
+    #while distanceSquared(drone_coords, pickup_coords)*10**6 > 0.0002:
+       # drone_coords = moveDrone(drone_coords, d_long, d_la)
+        #with requests.Session() as session:
+           # drone_info = {'id': drone_id,
+                          #'longitude': drone_coords[0],
+                          #'latitude': drone_coords[1],
+                          #'status': 'busy'
+                        #}
+            #resp = session.post(SERVER_URL, json=drone_info)
         
      # Debugging: Skriv ut nuvarande status
     print(f"Moving to destination: Current {drone_coords} -> Target {destination_coords}")
