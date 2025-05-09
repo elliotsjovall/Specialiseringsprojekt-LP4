@@ -69,7 +69,7 @@
       if (code && code.data != '') {
         output.textContent = `QR Code Detected`;
         alert('QR Code Detected')
-        fetch('http://127.0.0.1:5006/verify_qr', {
+        fetch('http://localhost:5000/verify_qr', {
             method: 'POST',
             headers: {
             'Content-Type': 'application/json',
