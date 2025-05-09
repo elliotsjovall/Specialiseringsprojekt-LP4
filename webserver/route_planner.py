@@ -20,7 +20,7 @@ region = ", Lund, Skåne, Sweden"
 
 # Funktion för att rensa Redis vid servernedstängning
 def cleanup_redis():
-    print("Cleaning up order-related Redis keys...")s
+    print("Cleaning up order-related Redis keys...")
     # Radera kön
     redis_server.delete('drone:queue')
 
