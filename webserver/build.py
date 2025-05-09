@@ -82,13 +82,11 @@ def check_available_drones():
         # Kontrollera typ
         key_type = redis_server.type(key)
         if key_type != 'hash':
-            print(f"❌ Skipping {key} – fel typ ({key_type})")
             continue
 
         drone_data = redis_server.hgetall(key)
         if drone_data:
             status = drone_data.get('status', 'unknown')
-            print(f"📡 Drönare {key} status: {status}")
             if status == "idle":
                 return True
     return False
@@ -168,11 +166,9 @@ def get_drones():
         # Kontrollera typ
         key_type = redis_server.type(key)
         if key_type != 'hash':
-            print(f"❌ Skipping {key} – fel typ ({key_type})")
             continue
         drone_id = key.split(":")[1]
         drone_data = redis_server.hgetall(key)
-        print(f"Data for {drone_id}: {drone_data}")  # Lägg till loggning för varje drönare
 
         if drone_data:
             try:
@@ -197,6 +193,34 @@ def get_order_status(order_number):
     """Returnerar aktuell status för en order."""
     status = redis_server.hget(order_number, 'status') or 'okänd'
     return jsonify({'status': status})
+
+@app.route('/set_order_delivered', methods=['POST'])
+def set_order_delivered():
+    data = request.get_json()
+    order_number = data.get('order_number')
+
+    if order_number:
+        redis_server.hset(order_number, 'status', 'levererad')
+        return jsonify({'status': 'ok'}), 200
+    return jsonify({'error': 'Ordernummer saknas'}), 400
+
+app.route('/verify_qr', methods=['POST'])
+def verify_qr():
+    try:
+        data = request.get_json()
+        qr_code_data = data.get('decoded_text')
+
+        if not qr_code_data:
+            return jsonify({'error': 'No QR code data provided'}), 400
+
+        # Verifiera QR-koddata här (det kan vara en databasfråga eller liknande)
+        # Här simulerar vi en framgång
+        if qr_code_data == "valid_code":
+            return jsonify({'success': True}), 200
+        else:
+            return jsonify({'success': False}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 

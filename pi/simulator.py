@@ -2,6 +2,27 @@ import math
 import requests
 import argparse
 import time  # 👈 viktigt
+import redis
+
+redis_server = redis.Redis(host='localhost', port=6379, decode_responses=True)
+
+def find_assigned_order(drone_id):
+    redis_server = redis.Redis(host='localhost', port=6379, decode_responses=True)
+
+    for order_id in range(1, 6):
+        key = str(order_id)
+        print(f"Kollar order {key}")
+        if redis_server.exists(key):
+            assigned_drone_key = redis_server.hget(key, "drone")  # detta är "DRONE1"
+            print(f" → Hittad drönare i order: {assigned_drone_key}")
+            if assigned_drone_key:
+                assigned_drone_id = redis_server.hget(assigned_drone_key, "id")
+                print(f" → ID från drone:{assigned_drone_key}: {assigned_drone_id}")
+                if assigned_drone_id == drone_id:
+                    print(f"Matchad order {key} till drönare {drone_id}")
+                    return key
+                
+    return None
 def getMovement(src, dst):
     speed = 0.00003
     dst_x, dst_y = dst
@@ -56,6 +77,21 @@ def run(drone_id, current_coords, pickup_coords, destination_coords, server_url)
             'status': 'busy'
         })
         time.sleep(0.05)
+
+    order_id = find_assigned_order(drone_id)
+    print(order_id)
+    
+    if order_id:
+        redis_server.hset(order_id, mapping={
+            'status': 'levererad'})  # Uppdaterra orderstatus till 'levererad'
+        # Tar bort drönaren från ordern efter leverans
+        redis_server.hdel(order_id, 'drone')  # Tar bort "drone" från ordern
+        print(f"✔️ Drönare borttagen från order {order_id}.")
+    else:
+        print(f"Error: No order assigned to drone {drone_id}. Skipping Redis update.")
+
+
+        
     print(f"Returning to pickup: Current {drone_coords} -> Target {pickup_coords}")
     # destination -> back to pickup
     d_long, d_la = getMovement(drone_coords, pickup_coords)
@@ -78,6 +114,8 @@ def run(drone_id, current_coords, pickup_coords, destination_coords, server_url)
                          }
             resp = session.post(SERVER_URL, json=drone_info)
     return drone_coords[0], drone_coords[1]
+
+
 
 
 if __name__ == "__main__":

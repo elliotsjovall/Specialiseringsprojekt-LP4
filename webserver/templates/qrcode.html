@@ -79,7 +79,7 @@
         .then(response => response.json())
         .then(data => {
           console.log('Verification response:', data);
-            output.textContent += ` | Verification: ${data.success}`;
+          output.textContent += ` | Verification: ${data.success}`;
 
           if (data.success == "true") {
             output.textContent = 'Code is valid';

@@ -33,6 +33,33 @@
   <object id="map" data="static/images/lund-map.svg" type="image/svg+xml"></object>
 
   <script type="text/javascript">
+  let currentOrderNumber = null;
+
+  function pollOrderStatus() {
+    if (!currentOrderNumber) return;
+
+    fetch(`/order_status/${currentOrderNumber}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.status) {
+          updateOrderStatus(data.status);
+        }
+      })
+      .catch(err => console.error("Polling error:", err));
+  }
+
+  function updateOrderStatus(status) {
+    const orderStatusElement = document.getElementById("order-status");
+    orderStatusElement.innerText = status;
+
+    if (status === "levereras") {
+      orderStatusElement.style.color = "orange";
+    } else if (status === "levererad") {
+      orderStatusElement.style.color = "green";
+    } else {
+      orderStatusElement.style.color = "gray";
+    }
+  }
 
         // Laddar orderdata från URL:en och fyller ut i rutan
     function loadOrderDataFromQuery() {
@@ -75,6 +102,8 @@
         }
       }
 
+      setInterval(pollOrderStatus, 5000);  // Starta polling efter laddning
+
     }
 
    
@@ -86,6 +115,9 @@
       if (status === "levereras") {
         orderStatusElement.style.color = "blue";
         orderStatusElement.innerText = "levereras";
+      } else if (status === "levererad") {
+        orderStatusElement.style.color = "blue";
+        orderStatusElement.innerText = "levererad";
       } else  {
         orderStatusElement.style.color = "blue";
         orderStatusElement.innerText = "i kö";

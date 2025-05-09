@@ -18,26 +18,9 @@ redis_server = redis.Redis(host='localhost', port=6379, decode_responses=True)
 geolocator = Nominatim(user_agent="my_request")
 region = ", Lund, Skåne, Sweden"
 
-# update_url = "http://localhost:5002/planner"
-# # Funktion för att uppdatera orderstatus på hemsidan
-# def update_order_on_website(order_number, status):
-#     d = {
-#         'order_number': order_number,
-#         'status': status
-#     }
-#     try:
-#         response = requests.post(update_url, json=d)
-#         if response.status_code == 200:
-#             print(f"Order {order_number} status updated successfully on website.")
-#         else:
-#             print(f"Failed to update order {order_number} status on website.")
-#     except Exception as e:
-#         print(f"Error updating order {order_number} status on website: {e}")
-
-
 # Funktion för att rensa Redis vid servernedstängning
 def cleanup_redis():
-    print("Cleaning up order-related Redis keys...")
+    print("Cleaning up order-related Redis keys...")s
     # Radera kön
     redis_server.delete('drone:queue')
 
@@ -54,7 +37,6 @@ atexit.register(cleanup_redis)
 @app.route('/planner', methods=['POST'])
 def route_planner():
     data = json.loads(request.data.decode())
-    print("AAAAAAAAA", data)
     FromAddress = "Sölvegatan 14"
     ToAddress = data['taddr']
     order_number = data.get('order_number')
@@ -131,6 +113,20 @@ def queue_length():
     # Kolla om det finns ordrar i kön
     length = redis_server.llen('drone:queue')
     return jsonify({'queue_length': length})
+
+@app.route('/delivery_complete', methods=['POST'])
+def delivery_complete():
+    data = request.get_json()
+    order_number = data.get('order_number')
+
+    if order_number:
+        # Uppdatera Redis
+        redis_server.hset(order_number, 'status', 'levererad')
+        print(f"✔️ Order {order_number} levererad.")
+
+        # (valfritt) Notifiera frontend via HTTP om du har en socket eller annat
+        return jsonify({'message': 'Orderstatus uppdaterad till levererad'}), 200
+    return jsonify({'error': 'Ordernummer saknas'}), 400
 
 def drone_queue_worker():
     while True:
