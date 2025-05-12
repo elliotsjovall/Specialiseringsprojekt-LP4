@@ -5,6 +5,62 @@
   <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
 </head>
 <style>
+  .modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.5);
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: auto;
+  padding: 30px 40px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+.modal h2 {
+  font-size: 28px;
+  margin-bottom: 15px;
+  color: #171359;
+}
+
+.modal p {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 25px;
+}
+
+.modal-button {
+  background-color: #1e1b63;
+  color: white;
+  padding: 12px 24px;
+  font-size: 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.modal-button:hover {
+  background-color: #27692d;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
   body {
     display: flex;
       flex-direction: column;
@@ -41,6 +97,13 @@
 <body>
   <video id="video" width="640" height="480" autoplay></video>
   <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+  <div id="infoModal" class="modal">
+    <div class="modal-content">
+      <h2 id="modalTitle">Meddelande</h2>
+      <p id="modalMessage">Leveransen är genomförd!</p>
+      <button class="modal-button" onclick="window.location.href='/'">Till huvudsidan</button>
+    </div>
+  </div>
   <p id="output">Scanning for QR code...</p>
   <button onclick="window.location.href='/'">Tillbaka</button>
 
@@ -49,6 +112,15 @@
     const canvas = document.getElementById('canvas');
     const output = document.getElementById('output');
     const context = canvas.getContext('2d');
+
+    function showModal(title, message) {
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalMessage').innerText = message;
+      document.getElementById('infoModal').style.display = 'flex';
+    }
+    function closeModal() {
+      document.getElementById('infoModal').style.display = 'none';
+    }
 
     // Access the camera
     navigator.mediaDevices.getUserMedia({ video: true })
@@ -68,32 +140,15 @@
 
       if (code && code.data != '') {
         output.textContent = `QR Code Detected`;
-        alert('QR Code Detected')
-        fetch('http://localhost:5000/verify_qr', {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ decoded_text: code.data}),
-        })
-        .then(response => response.json())
-        .then(data => {
-          console.log('Verification response:', data);
-          output.textContent += ` | Verification: ${data.success}`;
+        const tracks = video.srcObject.getTracks();
+        tracks.forEach(track => track.stop());
 
-          if (data.success == "true") {
-            output.textContent = 'Code is valid';
-            output.className = 'success';
-          } else {
-            output.textContent = 'Code is invalid';
-            output.className = 'failure';
-          }
-        })
+        showModal('Leverans verifierad', 'Leveransen är genomförd!');
+        tracks.forEach(track => track.stop());
 
-        .catch(err => {
-          output.textContent = 'Error connecting to the server';
-          output.className = 'failure';
-        });
+        output.textContent = `QR-kod hittad. Verifierar...`;
+
+
         // console.log(`QR Code Data: ${code.data}`);
 
       } else {

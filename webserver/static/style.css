@@ -6,6 +6,59 @@ body {
     padding: 0;
     color: #2c3e50; /* Mörkgrå textfärg för tydlighet */
   }
+
+  .info-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .info-panel-content {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 12px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  .info-panel-content h3 {
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    color: #333;
+  }
+  
+  .info-panel-content button {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background: #007bff;
+    border: none;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  .info-panel-content button:hover {
+    background: #0056b3;
+  }
+  
+  .hidden {
+    display: none;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
   
   /* Container för orderinfo */
   .order-info-container {

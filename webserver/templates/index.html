@@ -10,6 +10,15 @@
 
 
 <body>
+
+  <!-- Infopanel för meddelande -->
+  <div id="info-panel" class="info-panel hidden">
+    <div class="info-panel-content">
+      <h3>Leverans pågår</h3>
+      <p>Du kan skanna QR-koden när leveransen är klar.</p>
+      <button onclick="closeInfoPanel()">Stäng</button>
+    </div>
+  </div>
   
   <!-- Container för orderinformation -->
   <div class="order-info-container">
@@ -201,7 +210,20 @@
     }
 
     function goToQRScanner() {
-      window.location.href = "/qr" + window.location.search;
+      const orderStatus = document.getElementById("order-status").innerText.toLowerCase();
+      if (orderStatus === "levererad") {
+        window.location.href = "/qr" + window.location.search;
+      } else {
+        showInfoPanel();  // Visa panel istället för alert
+      }
+    }
+
+    function showInfoPanel() {
+      document.getElementById("info-panel").classList.remove("hidden");
+    }
+
+    function closeInfoPanel() {
+      document.getElementById("info-panel").classList.add("hidden");
     }
     
     pollDrones();
