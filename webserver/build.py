@@ -20,7 +20,7 @@ from urllib.parse import quote
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 app.secret_key = 'dljsaklqk24e21cjn!Ew@@dsa5'
-#socket = SocketIO(app, cors_allowed_origins="*")
+
 
 redis_server = redis.Redis(host="localhost", decode_responses=True, charset="unicode_escape", port=6379)
 
@@ -223,21 +223,6 @@ def verify_qr():
         return jsonify({'error': str(e)}), 500
 
 
-
-
-#Markerat ut socket eftersom jag inte hittar var den behövs och vi vill undvika för många post så sidan inte krashar
-
-#@socket.on('get_location')
-#def get_location():
-    try:
-        while True:
-            longitude = float(redis_server.get('longitude'))
-            latitude = float(redis_server.get('latitude'))
-            x_svg, y_svg = translate((longitude, latitude))
-            emit('get_location', {'x': x_svg, 'y': y_svg})
-            time.sleep(1)
-    except Exception as e:
-        print(f"Socket error: {e}")
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port='5000')

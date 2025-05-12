@@ -35,7 +35,7 @@ def drone():
         'longitude': drone_longitude,
         'latitude': drone_latitude,
         'status': drone_status,
-        'port': drone_port  # Lägg till port här
+        'port': drone_port  
     }
 
 

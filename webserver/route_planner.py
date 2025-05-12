@@ -124,7 +124,6 @@ def delivery_complete():
         redis_server.hset(order_number, 'status', 'levererad')
         print(f"✔️ Order {order_number} levererad.")
 
-        # (valfritt) Notifiera frontend via HTTP om du har en socket eller annat
         return jsonify({'message': 'Orderstatus uppdaterad till levererad'}), 200
     return jsonify({'error': 'Ordernummer saknas'}), 400
 
@@ -154,12 +153,9 @@ def drone_queue_worker():
                             resp = session.post(drone_url, json=coords)
                             print(f"Sent queued job to {drone}: {resp.text}")
                         
-                        # Ta bort order från kön och uppdatera statusen i Redis
+                       
                         redis_server.lpop('drone:queue')  # Ta bort order från kön
                         redis_server.hset(coords['order_number'], 'status', 'levereras')  # Uppdatera status i Redis
-
-                        # Uppdatera status på hemsidan
-                        #update_order_on_website(coords['order_number'], 'levereras')
 
                     except Exception as e:
                         print(f"Failed to send queued job to {drone}: {e}")
@@ -167,7 +163,6 @@ def drone_queue_worker():
                     break
         time.sleep(5)
 
-# Starta tråd för att hantera kön automatiskt
 threading.Thread(target=drone_queue_worker, daemon=True).start()
 
 
