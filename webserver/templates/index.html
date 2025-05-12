@@ -11,6 +11,17 @@
 
 <body>
 
+  <div id="problem-form-overlay" class="info-panel hidden">
+    <div class="info-panel-content">
+      <h3>Anmäl problem med leveransen</h3>
+      <textarea id="problem-message" placeholder="Beskriv problemet..." rows="5" style="width: 100%;"></textarea>
+      <div style="margin-top: 1rem;">
+        <button onclick="submitProblem()">Skicka</button>
+        <button onclick="closeProblemForm()" style="margin-left: 1rem; background-color: grey;">Avbryt</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Infopanel för meddelande -->
   <div id="info-panel" class="info-panel hidden">
     <div class="info-panel-content">
@@ -36,6 +47,8 @@
      <!-- Knapp för att gå till QR-skanner -->
      <button id="qr-scan-button" onclick="goToQRScanner()">Skanna QR-kod</button>
   </div>
+
+  <button onclick="openProblemForm()" class="problem-btn-floating"> Anmäl problem</button>
 
   <p id="order-info"></p>
 
@@ -225,6 +238,33 @@
     function closeInfoPanel() {
       document.getElementById("info-panel").classList.add("hidden");
     }
+
+    function openProblemForm() {
+  document.getElementById("problem-form-overlay").classList.remove("hidden");
+}
+
+function closeProblemForm() {
+  document.getElementById("problem-form-overlay").classList.add("hidden");
+}
+
+function submitProblem() {
+  const message = document.getElementById("problem-message").value.trim();
+
+  if (!message) {
+    alert("Fyll i ett meddelande först.");
+    return;
+  }
+
+  // Här kan du skicka meddelandet till servern, exempel:
+  // fetch('/report-problem', { method: 'POST', body: JSON.stringify({ message }) })
+
+  console.log("Problem rapporterat:", message); // Tillfälligt test
+  alert("Tack! Ditt meddelande har skickats.");
+
+  // Töm fältet och stäng formuläret
+  document.getElementById("problem-message").value = '';
+  closeProblemForm();
+}
     
     pollDrones();
 
