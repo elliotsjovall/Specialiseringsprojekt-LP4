@@ -142,6 +142,7 @@ def verify_order():
         # Om väderförhållanden är dåliga
         if weather_conditions:
             order_status = "väderproblem"
+            redis_server.hset(order_number, 'status', 'väderproblem')
             return redirect(url_for('map',
                                     ordernumber=order_number,
                                     address=to_addr,

@@ -27,7 +27,7 @@
     <div class="info-panel-content">
       <h3 id="info-panel-title">Information</h3>
       <p id="info-panel-message">Meddelande</p>
-      <button onclick="closeInfoPanel()">Stäng</button>
+      <button onclick="goBackToHome()">Till Huvudsidan</button>
     </div>
   </div>
   
@@ -147,6 +147,9 @@
       } else if (status === "levererad") {
         orderStatusElement.style.color = "green";
         orderStatusElement.innerText = "levererad";
+      }  else if (status === "väderproblem") {
+        orderStatusElement.style.color = "blue";
+        orderStatusElement.innerText = "Olämpligt väder";
       } else  {
         orderStatusElement.style.color = "red";
         orderStatusElement.innerText = "i kö";
