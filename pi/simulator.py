@@ -1,7 +1,7 @@
 import math
 import requests
 import argparse
-import time  # 👈 viktigt
+import time
 import redis
 
 redis_server = redis.Redis(host='localhost', port=6379, decode_responses=True)
@@ -86,7 +86,7 @@ def run(drone_id, current_coords, pickup_coords, destination_coords, server_url)
             'status': 'levererad'})  # Uppdaterra orderstatus till 'levererad'
         # Tar bort drönaren från ordern efter leverans
         redis_server.hdel(order_id, 'drone')  # Tar bort "drone" från ordern
-        print(f"✔️ Drönare borttagen från order {order_id}.")
+        print(f"Drönare borttagen från order {order_id}.")
     else:
         print(f"Error: No order assigned to drone {drone_id}. Skipping Redis update.")
 
@@ -105,7 +105,7 @@ def run(drone_id, current_coords, pickup_coords, destination_coords, server_url)
                           'status': 'busy'
                         }
             resp = session.post(SERVER_URL, json=drone_info)
-        time.sleep(0.05)  # 👈 Lägg till denna rad
+        time.sleep(0.05)
     with requests.Session() as session:
             drone_info = {'id': drone_id,
                           'longitude': drone_coords[0],

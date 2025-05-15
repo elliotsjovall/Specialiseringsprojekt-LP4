@@ -122,7 +122,7 @@ def delivery_complete():
     if order_number:
         # Uppdatera Redis
         redis_server.hset(order_number, 'status', 'levererad')
-        print(f"✔️ Order {order_number} levererad.")
+        print(f"Order {order_number} levererad.")
 
         return jsonify({'message': 'Orderstatus uppdaterad till levererad'}), 200
     return jsonify({'error': 'Ordernummer saknas'}), 400
