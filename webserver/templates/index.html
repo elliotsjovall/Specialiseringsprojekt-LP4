@@ -25,8 +25,8 @@
   <!-- Infopanel för meddelande -->
   <div id="info-panel" class="info-panel hidden">
     <div class="info-panel-content">
-      <h3>Leverans pågår</h3>
-      <p>Du kan skanna QR-koden när leveransen är klar.</p>
+      <h3 id="info-panel-title">Information</h3>
+      <p id="info-panel-message">Meddelande</p>
       <button onclick="closeInfoPanel()">Stäng</button>
     </div>
   </div>
@@ -103,6 +103,13 @@
       // Uppdatera statusen med färg
       const orderStatusElement = document.getElementById("order-status");
       updateOrderStatus(orderStatus);
+
+      if (orderStatus === "väderproblem") {
+        document.getElementById("info-panel-title").innerText = "Väderförhållanden olämpliga";
+        document.getElementById("info-panel-message").innerText = 
+          "Drönaren kan inte skickas just nu på grund av dåliga väderförhållanden. Vi meddelar dig när leveransen kan återupptas.";
+        document.getElementById("info-panel").classList.remove("hidden");
+}
 
       if (productListRaw) {
         try {

@@ -17,6 +17,8 @@ import requests
 import base64
 from urllib.parse import quote
 
+from weather import get_current_weather
+
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 app.secret_key = 'dljsaklqk24e21cjn!Ew@@dsa5'
@@ -91,6 +93,20 @@ def check_available_drones():
                 return True
     return False
 
+def checkweather():
+    current_weather = get_current_weather("Lund", "37e40df81dca4ab59ad115020250705")
+      
+    is_raining = current_weather["is_raining"]
+    wind_kph = current_weather["wind_kph"]
+    temp_c = current_weather["temp_c"]
+
+    print(f"raining: {is_raining},  wind: {wind_kph},  temp: {temp_c}")
+
+    if is_raining or wind_kph > 20:
+        return True
+    return False
+
+condition = True
 
 @app.route('/', methods=['GET'])
 def home():
@@ -119,6 +135,21 @@ def verify_order():
         #hämtar produkterna från list
         products = [p.namn for p in order.lists]
         product_json = base64.urlsafe_b64encode(json.dumps(products).encode()).decode()
+        
+        print("Kör checkweather...")
+        weather_conditions = checkweather()
+
+        # Om väderförhållanden är dåliga
+        if weather_conditions:
+            order_status = "väderproblem"
+            return redirect(url_for('map',
+                                    ordernumber=order_number,
+                                    address=to_addr,
+                                    weight=total_weight,
+                                    products=product_json,
+                                    status="väderproblem"))
+        
+       
 
        # Kolla om det finns lediga drönare
         available_drones = check_available_drones()
