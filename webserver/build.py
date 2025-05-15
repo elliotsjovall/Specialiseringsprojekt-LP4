@@ -11,7 +11,13 @@ from lager import Produkt
 from lager import Order
 from lager import Test
 from flask import redirect, url_for
+from weather import get_current_weather
 import requests
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # This loads the .env file
+
 
 #Lagt  till dessa importer för att kunna ladda in listan med produkterna
 import base64
@@ -106,8 +112,24 @@ def qr_scanner():
 
 @app.route('/verify_order', methods=['POST'])
 def verify_order():
+    weather_api_key = os.getenv('WEATHER_API_KEY')
+    if not weather_api_key:
+        return jsonify({'error': 'Väder-API-nyckel saknas'}), 500
+
+    try:
+        weather = get_current_weather("Lund", weather_api_key)
+        print("Current weather:", weather)
+
+        if weather["wind_kph"] > 5 or weather["is_raining"]:
+            return jsonify({'error': 'Vädret är för dåligt för drönarleverans just nu.'}), 503
+    except Exception as e:
+        print("Weather check error:", e)
+        return jsonify({'error': 'Kunde inte hämta väderdata.'}), 500
+    
     order_number = request.form.get('order-number')
     order = test_obj.getOrder(order_number)
+
+    
 
     if order:
         from_addr = "Sölvegatan 14" 
