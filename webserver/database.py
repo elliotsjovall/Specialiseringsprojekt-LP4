@@ -14,7 +14,6 @@ redis_server.set('latitude', 55.71106)
 @app.route('/drone', methods=['POST'])
 def drone():
     drone = request.get_json()
-    #Ensure the 'port' key exists in the request data
     droneIP = request.remote_addr
     droneID = drone['id']
     drone_longitude = drone['longitude']
@@ -26,7 +25,7 @@ def drone():
     # Om port finns i begäran, använd den, annars behåll den befintliga porten i Redis
     drone_port = drone.get('port', existing_port)
 
-    print(f"Port received: {drone_port}")  # Debugging the port field
+    print(f"Port received: {drone_port}")
 
 
     drone_data = {

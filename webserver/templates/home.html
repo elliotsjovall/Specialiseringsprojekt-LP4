@@ -48,10 +48,8 @@
         })
         .then(response => {
             if (response.redirected) {
-                // ✅ Om servern returnerar en redirect (HTTP 302)
                 window.location.href = response.url;
             } else if (response.ok) {
-                // 🔁 Backup om du själv vill bygga URL:en (inte nödvändigt i ditt fall)
                 window.location.href = "/map?ordernumber=" + encodeURIComponent(orderNumber);
             } else {
                 document.getElementById("error-message").style.display = 'block';

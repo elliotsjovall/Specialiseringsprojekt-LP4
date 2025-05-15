@@ -13,7 +13,11 @@ from lager import Test
 from flask import redirect, url_for
 import requests
 
-#Lagt  till dessa importer för att kunna ladda in listan med produkterna
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
 import base64
 from urllib.parse import quote
 
@@ -94,7 +98,8 @@ def check_available_drones():
     return False
 
 def checkweather():
-    current_weather = get_current_weather("Lund", "37e40df81dca4ab59ad115020250705")
+    weather_api_key = os.getenv('WEATHER_API_KEY')
+    current_weather = get_current_weather("Lund", weather_api_key)
       
     is_raining = current_weather["is_raining"]
     wind_kph = current_weather["wind_kph"]
