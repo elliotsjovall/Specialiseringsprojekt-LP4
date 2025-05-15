@@ -1,14 +1,37 @@
-# InfoCom Drone Project - Part 5 - Multi-drone System
-Install the required Python packages if not done already (you probably did this in the previous assignments):
-```
+# InfoCom Drone Project - Part 5 – Multi-drone System
+
+This project simulates a multi-drone medicine delivery system for the city of Lund using Flask, Redis, and Python. Each drone communicates with the server and follows route plans, which are adjusted based on weather conditions.
+
+---
+
+## Required Installations
+
+You have to install the following packages for the program to work. 
+
+
+```bash
 sudo apt update
+sudo apt install redis-server
+sudo apt install python3-pip
 sudo apt install python3-socketio
 sudo apt install python3-engineio
 sudo apt install python3-flask-socketio
 sudo apt install python3-flask-cors
 sudo apt install python3-geopy
-```
 
+pip3 install -r requirements.txt
+```
+For this program to work you must provide a weather API key from https://www.weatherapi.com
+
+when you go to the webserver /webserver you have to create a .env file
+```bash
+cd webserver
+touch .env
+```
+Add your key to the file:
+```bash
+WEATHER_API_KEY=your_api_key_here
+```
 
 ## On the Server Pi:
 Go to `/webserver`, start your Redis server (if it is not already running, which it probably is – test using `redis-cli`) and run the three flask servers that make up the server side of the drone application:
