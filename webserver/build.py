@@ -107,7 +107,7 @@ def checkweather():
 
     print(f"raining: {is_raining},  wind: {wind_kph},  temp: {temp_c}")
 
-    if is_raining or wind_kph > 20:
+    if is_raining or wind_kph > 40 or temp_c < 0:
         return True
     return False
 
