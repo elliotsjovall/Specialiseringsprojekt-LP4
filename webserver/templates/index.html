@@ -28,6 +28,7 @@
       <h3 id="info-panel-title">Information</h3>
       <p id="info-panel-message">Meddelande</p>
       <button onclick="goBackToHome()">Till Huvudsidan</button>
+      <button onclick="closeInfoPanel()">Avbryt </button>
     </div>
   </div>
   
@@ -235,15 +236,20 @@
     function goToQRScanner() {
       const orderStatus = document.getElementById("order-status").innerText.toLowerCase();
       if (orderStatus === "levererad") {
-        window.location.href = "/qr" + window.location.search;
+        const orderId = document.getElementById("order-number").innerText;
+        window.location.href = `/qr?order_id=${orderId}`;
       } else {
         showInfoPanel();  // Visa panel istället för alert
       }
     }
 
     function showInfoPanel() {
+      document.getElementById("info-panel-title").innerText = "QR-kod inte tillgänglig";
+      document.getElementById("info-panel-message").innerText = 
+      "Du kan endast skanna QR-koden när din beställning är levererad.";
       document.getElementById("info-panel").classList.remove("hidden");
-    }
+}
+    
 
     function closeInfoPanel() {
       document.getElementById("info-panel").classList.add("hidden");
@@ -259,22 +265,36 @@ function closeProblemForm() {
 
 function submitProblem() {
   const message = document.getElementById("problem-message").value.trim();
+  const orderNumber = document.getElementById("order-number").innerText;
 
   if (!message) {
     alert("Fyll i ett meddelande först.");
     return;
   }
 
-  // Här kan du skicka meddelandet till servern, exempel:
-  // fetch('/report-problem', { method: 'POST', body: JSON.stringify({ message }) })
-
-  console.log("Problem rapporterat:", message); // Tillfälligt test
-  alert("Tack! Ditt meddelande har skickats.");
-
-  // Töm fältet och stäng formuläret
-  document.getElementById("problem-message").value = '';
-  closeProblemForm();
+  fetch('/report-problem', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({order_number: orderNumber, message: message,})
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      alert("Tack! Ditt meddelande har skickats.");
+      document.getElementById("problem-message").value = '';
+      closeProblemForm();
+    } else {
+      alert("Fel vid rapportering: " + (data.error || "okänt fel"));
+    }
+  })
+  .catch(error => {
+    console.error("Fel vid anmälan:", error);
+    alert("Kunde inte skicka problemet.");
+  });
 }
+
     
     pollDrones();
 
