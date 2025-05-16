@@ -62,13 +62,25 @@ lista3 = [
 lista4 = [
     Produkt("Aloe Vera-gel", 100),
 ]
+order1 = Order(lista1, "Magistratsvägen 1", "1")
+order2 = Order(lista2, "Nationsgatan 1", "2")
+order3 = Order(lista3, "Tunavägen 5", "3")
+order4 = Order(lista4, "Södra Esplanaden 10", "4")
+order5 = Order(lista1, "Södra Esplanaden 1", "5")
+
+order1.set_qr_code("qr_order_1.png")
+order2.set_qr_code("qr_order_2.png")
+order3.set_qr_code("qr_order_3.png")
+order4.set_qr_code("qr_order_4.png")
+order5.set_qr_code("qr_order_5.png")
 
 olist = [
-    Order(lista1, "Magistratsvägen 1", "1"),
-    Order(lista2, "Nationsgatan 1", "2"),
-    Order(lista3, "Tunavägen 5", "3"),
-    Order(lista4, "Södra Esplanaden 10", "4"),
-    Order(lista1, "Södra Esplanaden 1", "5")
+   order1,
+    order2,
+    order3,
+    order4,
+    order5
+    
 ]
 
 test_obj = Test(olist)
@@ -102,7 +114,7 @@ def checkweather():
 
     print(f"raining: {is_raining},  wind: {wind_kph},  temp: {temp_c}")
 
-    if is_raining or wind_kph > 20:
+    if is_raining or wind_kph > 30:
         return True
     return False
 
@@ -236,25 +248,47 @@ def set_order_delivered():
         return jsonify({'status': 'ok'}), 200
     return jsonify({'error': 'Ordernummer saknas'}), 400
 
-app.route('/verify_qr', methods=['POST'])
+@app.route('/verify_qr', methods=['POST'])
 def verify_qr():
     try:
         data = request.get_json()
         qr_code_data = data.get('decoded_text')
+        order_id = data.get('order_id')
 
-        if not qr_code_data:
-            return jsonify({'error': 'No QR code data provided'}), 400
+        if not qr_code_data or not order_id:
+            return jsonify({'success': False, 'message': 'QR-kod eller order-ID saknas'}), 400
 
-        # Verifiera QR-koddata här (det kan vara en databasfråga eller liknande)
-        # Här simulerar vi en framgång
-        if qr_code_data == "valid_code":
+        # Verifiera QR-koddata här 
+        order = test_obj.getOrder(order_id)
+
+        if order is None:
+            return jsonify({'success': False, 'message': 'Order finns inte'}), 404
+
+       # Jämför QR-kodens data med orderns id
+        if qr_code_data == order.getOrderNmbr():
+            redis_server.hset(order_id, 'status', 'levererad')  # markera levererad
             return jsonify({'success': True}), 200
         else:
             return jsonify({'success': False}), 200
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/report-problem', methods=['POST'])
+def report_problem():
+    data = request.get_json()
+    message = data.get('message')
+    order_number = data.get('order_number')
 
+    if not message:
+        return jsonify({'error': 'Inget meddelande mottaget'}), 400
+
+    try:
+        with open('problem_reports.txt', 'a', encoding='utf-8') as f:
+            f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')}  - Ordernummer: {order_number} - {message}\n")
+        return jsonify({'success': True}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port='5000')
