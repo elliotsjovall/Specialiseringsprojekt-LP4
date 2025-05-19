@@ -1,11 +1,10 @@
 from os import fdopen
+import os
 from flask import Flask, render_template, request
 from flask.json import jsonify
-from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 import time
 import redis
-import pickle
 import json
 from lager import Produkt
 from lager import Order
@@ -16,6 +15,9 @@ import requests
 #Lagt  till dessa importer för att kunna ladda in listan med produkterna
 import base64
 from urllib.parse import quote
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from weather import get_current_weather
 
@@ -106,7 +108,8 @@ def check_available_drones():
     return False
 
 def checkweather():
-    current_weather = get_current_weather("Lund", "37e40df81dca4ab59ad115020250705")
+    weather_api_key = os.getenv('WEATHER_API_KEY')
+    current_weather = get_current_weather("Lund", weather_api_key)
       
     is_raining = current_weather["is_raining"]
     wind_kph = current_weather["wind_kph"]
