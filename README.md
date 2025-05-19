@@ -4,7 +4,7 @@ This project simulates a multi-drone medicine delivery system for the city of Lu
 
 ---
 
-## Required Installations
+## Required Installations for Windows
 
 You have to install the following packages for the program to work. 
 
@@ -20,11 +20,31 @@ sudo apt install python3-flask-cors
 sudo apt install python3-geopy
 
 pip3 install -r requirements.txt
+
+```
+## Required Installations for Mac 
+
+You have to install the following packages for the program to work.
+
+```bash
+Need the user to have homebrew installed
+brew install redis
+brew services start redis
+pip3 install redis
+pip3 install python-socketio
+pip3 install python-engineio
+pip3 install flask-socketio
+pip3 install flask-cors
+pip3 install geopy
+pip3 install python-dotenv
+
+pip3 install -r requirements.txt
 ```
 For this program to work you must provide a weather API key from https://www.weatherapi.com
 
 when you go to the webserver /webserver you have to create a .env file
 ```bash
+pip3 install python-dotenv ## You have to downlaod dotenv for this to work!
 cd webserver
 touch .env
 ```

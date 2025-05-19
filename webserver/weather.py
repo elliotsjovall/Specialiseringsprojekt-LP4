@@ -3,6 +3,7 @@ import requests
 _WEATHER_URL = "http://api.weatherapi.com/v1/current.json"
 
 def get_current_weather(city: str, api_key: str):
+    print("Weather condition text:", data["current"]["condition"]["text"])
     """
     Fetch the current weather for `city` from WeatherAPI.
     Returns a dict with:
