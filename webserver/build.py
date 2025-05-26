@@ -77,6 +77,15 @@ olist = [
 
 test_obj = Test(olist)
 
+# Lägg ordrar i Redis vid uppstart så att de kan hittas senare
+for order in olist:
+    order_number = order.getOrderNmbr()
+    if not redis_server.exists(order_number):
+        redis_server.hset(order_number, mapping={
+            "status": "okänd",  # eller "skapad" om du vill ha initial status
+        })
+
+
 def check_available_drones():
     drone_keys = redis_server.keys("drone:*")
     
